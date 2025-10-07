@@ -8,6 +8,8 @@ use App\Models\Playlist;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use App\Models\ScreenAssignment;
+use App\Events\ScreenContentUpdated;
 
 class PlaylistController extends Controller
 {
@@ -59,9 +61,20 @@ class PlaylistController extends Controller
         ]);
 
         $playlist->update($request->only('name'));
-
-        // استخدام sync لتحديث الوسائط المرتبطة بالقائمة
         $playlist->mediaItems()->sync($request->input('media_items', []));
+
+        // **جديد**: العثور على جميع الشاشات التي تستخدم هذه القائمة وإرسال تحديث لها
+        $assignments = ScreenAssignment::where('assignable_type', Playlist::class)
+            ->where('assignable_id', $playlist->id)
+            ->with('screen')
+            ->get();
+
+        foreach ($assignments as $assignment) {
+            if ($assignment->screen) {
+                // نرسل التحديث لكل شاشة على حدة
+                ScreenContentUpdated::dispatch($assignment->screen);
+            }
+        }
 
         return redirect()->route('admin.playlists.index')->with('success', 'تم تحديث القائمة بنجاح.');
     }

@@ -10,6 +10,7 @@ use App\Models\ScreenAssignment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use App\Events\ScreenContentUpdated;
 use Inertia\Response;
 
 class ScreenController extends Controller
@@ -106,6 +107,10 @@ class ScreenController extends Controller
             $screen->assignment()->delete();
         }
 
+          // **جديد**: إرسال حدث التحديث إلى الشاشة المعنية
+        // نقوم بإعادة تحميل الشاشة لضمان الحصول على أحدث البيانات
+        $screen->refresh();
+        ScreenContentUpdated::dispatch($screen);
         return redirect()->route('admin.screens.index')->with('success', 'تم تحديث الشاشة بنجاح.');
     }
 

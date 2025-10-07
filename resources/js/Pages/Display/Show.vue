@@ -6,20 +6,19 @@ const props = defineProps({
     mediaItems: Array,
     departments: Array,
     backgroundAudioUrl: String,
-    initialBroadcastItem: Object, // **تصحيح**: استقبال بيانات البث الأولية
+    initialBroadcastItem: Object,
 });
 
-// **تصحيح**: تهيئة متغير البث بالقيمة الأولية من الخادم
 const broadcastItem = ref(props.initialBroadcastItem);
-
-// --- نظام الصوت ---
 const audioPlayer = ref(null);
 const isMuted = ref(true);
-
-// --- نظام الإعلانات ---
 const currentIndex = ref(0);
 const isVisible = ref(false);
-const currentItem = computed(() => props.mediaItems?.[currentIndex.value] || null);
+
+// **جديد**: استخدام متغير محلي للوسائط لتمكين التحديث الفوري
+const localMediaItems = ref(props.mediaItems);
+
+const currentItem = computed(() => localMediaItems.value?.[currentIndex.value] || null);
 const containerStyle = computed(() => {
     if (props.screen.resolution) {
         const [width, height] = props.screen.resolution.split('x').map(Number);
@@ -32,27 +31,37 @@ const containerStyle = computed(() => {
 const nextItem = () => {
     isVisible.value = false;
     setTimeout(() => {
-        currentIndex.value = (currentIndex.value + 1) % (props.mediaItems.length || 1);
+        currentIndex.value = (currentIndex.value + 1) % (localMediaItems.value.length || 1);
         isVisible.value = true;
     }, 500);
 };
 
-const scheduleNext = () => {
-    if (currentItem.value?.type === 'image') {
-        setTimeout(nextItem, currentItem.value.duration * 1000);
+// **جديد**: دالة لبدء أو إعادة تشغيل المشغل
+const startPlayer = () => {
+    if (localMediaItems.value.length > 0 && !broadcastItem.value) {
+        currentIndex.value = 0; // ابدأ دائمًا من العنصر الأول عند التحديث
+        isVisible.value = true;
+        scheduleNext();
+    } else {
+        isVisible.value = false; // إخفاء المشغل إذا كانت القائمة الجديدة فارغة
     }
 };
 
-// --- نظام التنبيهات ---
-const notification = ref(null);
 
-// --- نظام الاستعلامات ---
+const scheduleNext = () => {
+    // إيقاف أي مؤقتات سابقة لضمان عدم التداخل
+    clearTimeout(window.playerTimeout);
+    if (currentItem.value?.type === 'image') {
+        window.playerTimeout = setTimeout(nextItem, currentItem.value.duration * 1000);
+    }
+};
+
+const notification = ref(null);
 const showInquiry = ref(false);
 const inquiryStep = ref('departments');
 const selectedDepartment = ref(null);
 const selectedDoctor = ref(null);
 let inactivityTimer = null;
-
 const translatedDays = {
     Saturday: 'السبت', Sunday: 'الأحد', Monday: 'الإثنين',
     Tuesday: 'الثلاثاء', Wednesday: 'الأربعاء', Thursday: 'الخميس', Friday: 'الجمعة'
@@ -79,7 +88,6 @@ const openInquiry = () => {
 const closeInquiry = () => {
     showInquiry.value = false;
     inquiryStep.value = 'departments';
-    // **تصحيح**: إعادة تعيين البيانات عند الإغلاق
     selectedDepartment.value = null;
     selectedDoctor.value = null;
     clearTimeout(inactivityTimer);
@@ -104,29 +112,37 @@ const goBack = () => {
 };
 
 onMounted(() => {
-    if (props.mediaItems.length > 0 && !broadcastItem.value) {
-        isVisible.value = true;
-        scheduleNext();
-    }
-    // **تحديث**: إضافة سجلات تشخيصية للاتصال الفوري
+    startPlayer(); // بدء المشغل عند تحميل الصفحة
+
     if (window.Echo) {
-        console.log("Echo is available. Connecting to 'displays' channel...");
+        // الاستماع للأحداث العامة
+        console.log("Connecting to public 'displays' channel...");
         window.Echo.channel('displays')
-            .listen('AppointmentApproaching', (event) => {
+            .listen('.AppointmentApproaching', (event) => {
                 console.log('Real-time event received: AppointmentApproaching', event);
                 notification.value = event;
                 setTimeout(() => notification.value = null, 15000);
             })
-            .listen('BroadcastMedia', (event) => {
+            .listen('.BroadcastMedia', (event) => {
                 console.log('Real-time event received: BroadcastMedia', event);
                 broadcastItem.value = event.mediaItem;
             })
-            .listen('StopBroadcast', (event) => {
+            .listen('.StopBroadcast', (event) => {
                 console.log('Real-time event received: StopBroadcast', event);
                 broadcastItem.value = null;
             });
+        
+        // **جديد**: الاستماع للأحداث الخاصة بهذه الشاشة
+        if (props.screen.screen_code) {
+             console.log(`Connecting to private 'displays.${props.screen.screen_code}' channel...`);
+             window.Echo.channel(`displays.${props.screen.screen_code}`)
+                .listen('.ScreenContentUpdated', (event) => {
+                    console.log('Real-time event received: ScreenContentUpdated', event);
+                    localMediaItems.value = event.mediaItems;
+                    startPlayer(); // إعادة تشغيل المشغل بالمحتوى الجديد
+                });
+        }
 
-        // للتشخيص المتقدم: مراقبة حالة الاتصال
         window.Echo.connector.pusher.connection.bind('state_change', function(states) {
             console.log("Pusher connection state changed from", states.previous, "to", states.current);
         });
@@ -138,6 +154,13 @@ onMounted(() => {
 watch(currentItem, (newItem) => {
     if (newItem?.type === 'image' && !broadcastItem.value) {
         scheduleNext();
+    }
+});
+
+watch(broadcastItem, (newVal, oldVal) => {
+    if (newVal === null && oldVal !== null) {
+        console.log("Broadcast ended. Restarting regular playlist...");
+        startPlayer();
     }
 });
 </script>

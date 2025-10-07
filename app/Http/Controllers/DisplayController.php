@@ -16,12 +16,10 @@ class DisplayController extends Controller
     public function show($code): Response
     {
         Inertia::setRootView('display');
-
         $screen = Screen::with('assignment', 'backgroundAudio')
             ->where('screen_code', $code)
             ->where('is_active', true)
             ->firstOrFail();
-
         $mediaItems = collect();
         if ($assignment = $screen->assignment) {
             if ($assignment->assignable_type === Playlist::class && $assignment->assignable) {
@@ -30,16 +28,12 @@ class DisplayController extends Controller
                 $mediaItems->push($assignment->assignable);
             }
         }
-
-        // **تصحيح**: إكمال منطق تنسيق الوسائط
         $formattedMedia = $mediaItems->map(fn($item) => [
             'id' => $item->id,
             'url' => Storage::url($item->file_path),
             'type' => $item->file_type,
             'duration' => $item->duration,
         ]);
-
-        // **تصحيح**: إكمال منطق تنسيق الأقسام والأطباء
         $departments = Department::with(['doctors.schedules'])->orderBy('name')->get()->map(fn($department) => [
             'id' => $department->id,
             'name' => $department->name,
@@ -50,10 +44,7 @@ class DisplayController extends Controller
                 'schedules' => $doctor->schedules,
             ]),
         ]);
-
         $backgroundAudioUrl = $screen->backgroundAudio ? Storage::url($screen->backgroundAudio->file_path) : null;
-
-        // التحقق من وجود بث نشط عند تحميل الصفحة
         $initialBroadcastItem = null;
         $activeBroadcastId = Cache::get('active_broadcast_media_id');
         if ($activeBroadcastId) {
@@ -65,12 +56,12 @@ class DisplayController extends Controller
                 ];
             }
         }
-
         return Inertia::render('Display/Show', [
             'screen' => [
                 'name' => $screen->name,
                 'orientation' => $screen->orientation,
                 'resolution' => $screen->resolution,
+                'screen_code' => $screen->screen_code, // **تحديث هنا**
             ],
             'mediaItems' => $formattedMedia,
             'departments' => $departments,

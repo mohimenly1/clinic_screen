@@ -1,241 +1,193 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
-import NavLink from '@/Components/NavLink.vue';
-import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
-import { Link } from '@inertiajs/vue3';
+import SidebarLink from '@/Components/SidebarLink.vue';
+import { Link, usePage } from '@inertiajs/vue3';
 
-const showingNavigationDropdown = ref(false);
+const page = usePage();
+const showingMobileMenu = ref(false);
+
+const user = computed(() => page.props.auth.user);
+
+const isActive = (pattern) => {
+    return route().current(pattern);
+};
+
+const navigation = computed(() => [
+    {
+        name: 'لوحة التحكم',
+        href: 'dashboard',
+        icon: 'dashboard',
+        active: isActive('dashboard'),
+    },
+    {
+        name: 'إدارة الشاشات',
+        href: 'admin.screens.index',
+        icon: 'screen',
+        active: isActive('admin.screens.*'),
+    },
+    {
+        name: 'مكتبة الوسائط',
+        href: 'admin.media-items.index',
+        icon: 'media',
+        active: isActive('admin.media-items.*'),
+    },
+    {
+        name: 'قوائم التشغيل',
+        href: 'admin.playlists.index',
+        icon: 'playlist',
+        active: isActive('admin.playlists.*'),
+    },
+    {
+        name: 'أقسام العيادة',
+        href: 'admin.departments.index',
+        icon: 'department',
+        active: isActive('admin.departments.*'),
+    },
+    {
+        name: 'الأطباء',
+        href: 'admin.doctors.index',
+        icon: 'doctor',
+        active: isActive('admin.doctors.*'),
+    },
+    {
+        name: 'البث العام',
+        href: 'admin.broadcast.index',
+        icon: 'broadcast',
+        active: isActive('admin.broadcast.*'),
+    },
+]);
 </script>
 
 <template>
-    <div>
-        <div class="min-h-screen bg-gray-100">
-            <nav
-                class="border-b border-gray-100 bg-white"
-            >
-                <!-- Primary Navigation Menu -->
-                <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div class="flex h-16 justify-between">
-                        <div class="flex">
-                            <!-- Logo -->
-                            <div class="flex shrink-0 items-center">
-                                <Link :href="route('dashboard')">
-                                    <ApplicationLogo
-                                        class="block h-9 w-auto fill-current text-gray-800"
-                                    />
-                                </Link>
-                            </div>
+    <div class="min-h-screen bg-gray-50">
+        <!-- Mobile menu overlay -->
+        <div
+            v-if="showingMobileMenu"
+            class="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 lg:hidden"
+            @click="showingMobileMenu = false"
+        ></div>
 
-                            <!-- Navigation Links -->
-                            <div
-                                class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex"
-                            >
-                                <NavLink
-                                    :href="route('dashboard')"
-                                    :active="route().current('dashboard')"
-                                >
-                                    Dashboard
-                                </NavLink>
-                                <!-- الرابط الجديد لإدارة الشاشات -->
-                                <NavLink
-                                    :href="route('admin.screens.index')"
-                                    :active="route().current('admin.screens.*')"
-                                >
-                                    إدارة الشاشات
-                                </NavLink>
-                                <NavLink
-                                    :href="route('admin.media-items.index')"
-                                    :active="route().current('admin.media-items.*')"
-                                >
-                                مكتبة الوسائط
-                                </NavLink>
-                                <NavLink
-                                    :href="route('admin.playlists.index')"
-                                    :active="route().current('admin.playlists.*')"
-                                >
-                              قوائم التشغيل
-                                </NavLink>
-                                <NavLink
-                                    :href="route('admin.departments.index')"
-                                    :active="route().current('admin.departments.*')"
-                                >
-                              اقسام العيادة
-                                </NavLink>
-                                <NavLink
-                                    :href="route('admin.doctors.index')"
-                                    :active="route().current('admin.doctors.*')"
-                                >
-                              الاطباء
-                                </NavLink>
-                                <NavLink
-                                    :href="route('admin.broadcast.index')"
-                                    :active="route().current('admin.broadcast.*')"
-                                >
-                                البث العام
-                                </NavLink>
-                            </div>
-                        </div>
-
-                        <div class="hidden sm:ms-6 sm:flex sm:items-center">
-                            <!-- Settings Dropdown -->
-                            <div class="relative ms-3">
-                                <Dropdown align="right" width="48">
-                                    <template #trigger>
-                                        <span class="inline-flex rounded-md">
-                                            <button
-                                                type="button"
-                                                class="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none"
-                                            >
-                                                {{ $page.props.auth.user.name }}
-
-                                                <svg
-                                                    class="-me-0.5 ms-2 h-4 w-4"
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    viewBox="0 0 20 20"
-                                                    fill="currentColor"
-                                                >
-                                                    <path
-                                                        fill-rule="evenodd"
-                                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                                        clip-rule="evenodd"
-                                                    />
-                                                </svg>
-                                            </button>
-                                        </span>
-                                    </template>
-
-                                    <template #content>
-                                        <DropdownLink
-                                            :href="route('profile.edit')"
-                                        >
-                                            Profile
-                                        </DropdownLink>
-                                        <DropdownLink
-                                            :href="route('logout')"
-                                            method="post"
-                                            as="button"
-                                        >
-                                            Log Out
-                                        </DropdownLink>
-                                    </template>
-                                </Dropdown>
-                            </div>
-                        </div>
-
-                        <!-- Hamburger -->
-                        <div class="-me-2 flex items-center sm:hidden">
-                            <button
-                                @click="
-                                    showingNavigationDropdown =
-                                        !showingNavigationDropdown
-                                "
-                                class="inline-flex items-center justify-center rounded-md p-2 text-gray-400 transition duration-150 ease-in-out hover:bg-gray-100 hover:text-gray-500 focus:bg-gray-100 focus:text-gray-500 focus:outline-none"
-                            >
-                                <svg
-                                    class="h-6 w-6"
-                                    stroke="currentColor"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        :class="{
-                                            hidden: showingNavigationDropdown,
-                                            'inline-flex':
-                                                !showingNavigationDropdown,
-                                        }"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M4 6h16M4 12h16M4 18h16"
-                                    />
-                                    <path
-                                        :class="{
-                                            hidden: !showingNavigationDropdown,
-                                            'inline-flex':
-                                                showingNavigationDropdown,
-                                        }"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Responsive Navigation Menu -->
-                <div
-                    :class="{
-                        block: showingNavigationDropdown,
-                        hidden: !showingNavigationDropdown,
-                    }"
-                    class="sm:hidden"
+        <!-- Sidebar -->
+        <aside
+            :class="[
+                'fixed inset-y-0 right-0 z-50 w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out lg:translate-x-0',
+                showingMobileMenu ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'
+            ]"
+        >
+            <!-- Logo -->
+            <div class="flex items-center justify-between h-16 px-6 bg-gradient-to-r from-indigo-600 to-purple-600">
+                <Link :href="route('dashboard')" class="flex items-center space-x-3 space-x-reverse">
+                    <ApplicationLogo class="h-8 w-8 text-white" />
+                    <span class="text-white font-bold text-lg">نظام الشاشات</span>
+                </Link>
+                <button
+                    @click="showingMobileMenu = false"
+                    class="lg:hidden text-white hover:text-gray-200"
                 >
-                    <div class="space-y-1 pb-3 pt-2">
-                        <ResponsiveNavLink
-                            :href="route('dashboard')"
-                            :active="route().current('dashboard')"
-                        >
-                            Dashboard
-                        </ResponsiveNavLink>
-                        <!-- الرابط الجديد في القائمة المنسدلة للموبايل -->
-                         <ResponsiveNavLink
-                            :href="route('admin.screens.index')"
-                            :active="route().current('admin.screens.*')"
-                        >
-                            إدارة الشاشات
-                        </ResponsiveNavLink>
-                    </div>
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
 
-                    <!-- Responsive Settings Options -->
-                    <div
-                        class="border-t border-gray-200 pb-1 pt-4"
-                    >
-                        <div class="px-4">
-                            <div
-                                class="text-base font-medium text-gray-800"
-                            >
-                                {{ $page.props.auth.user.name }}
-                            </div>
-                            <div class="text-sm font-medium text-gray-500">
-                                {{ $page.props.auth.user.email }}
-                            </div>
-                        </div>
-
-                        <div class="mt-3 space-y-1">
-                            <ResponsiveNavLink :href="route('profile.edit')">
-                                Profile
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink
-                                :href="route('logout')"
-                                method="post"
-                                as="button"
-                            >
-                                Log Out
-                            </ResponsiveNavLink>
-                        </div>
-                    </div>
-                </div>
+            <!-- Navigation -->
+            <nav class="mt-8 px-4 space-y-2 overflow-y-auto h-[calc(100vh-12rem)] pb-4">
+                <SidebarLink
+                    v-for="item in navigation"
+                    :key="item.name"
+                    :href="route(item.href)"
+                    :active="item.active"
+                    :icon="item.icon"
+                >
+                    {{ item.name }}
+                </SidebarLink>
             </nav>
 
-            <!-- Page Heading -->
+            <!-- User section at bottom -->
+            <div class="absolute bottom-0 right-0 left-0 p-4 bg-gray-50 border-t border-gray-200">
+                <div class="flex items-center space-x-3 space-x-reverse">
+                    <div class="flex-shrink-0">
+                        <div class="h-10 w-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center text-white font-semibold">
+                            {{ user.name.charAt(0).toUpperCase() }}
+                        </div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900 truncate">{{ user.name }}</p>
+                        <p class="text-xs text-gray-500 truncate">{{ user.email }}</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main content -->
+        <div class="lg:pr-64">
+            <!-- Top header -->
+            <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-30">
+                <div class="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
+                    <!-- Mobile menu button -->
+                    <button
+                        @click="showingMobileMenu = true"
+                        class="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
+                    >
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+
+                    <!-- Page title (optional, can be removed if not needed) -->
+                    <div class="flex-1 lg:flex-none"></div>
+
+                    <!-- User dropdown -->
+                    <div class="relative">
+                        <Dropdown align="left" width="48">
+                            <template #trigger>
+                                <button class="flex items-center space-x-3 space-x-reverse text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 rounded-full">
+                                    <span class="hidden sm:block text-gray-700 font-medium">{{ user.name }}</span>
+                                    <div class="h-8 w-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm">
+                                        {{ user.name.charAt(0).toUpperCase() }}
+                                    </div>
+                                    <svg class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                            </template>
+
+                            <template #content>
+                                <DropdownLink :href="route('profile.edit')">
+                                    الملف الشخصي
+                                </DropdownLink>
+                                <DropdownLink
+                                    :href="route('logout')"
+                                    method="post"
+                                    as="button"
+                                    class="text-red-600"
+                                >
+                                    تسجيل الخروج
+                                </DropdownLink>
+                            </template>
+                        </Dropdown>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Heading (optional slot) -->
             <header
-                class="bg-white shadow"
                 v-if="$slots.header"
+                class="bg-white shadow-sm"
             >
-                <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+                <div class="px-4 py-6 sm:px-6 lg:px-8">
                     <slot name="header" />
                 </div>
             </header>
 
             <!-- Page Content -->
-            <main>
-                <slot />
+            <main class="py-6">
+                <div class="px-4 sm:px-6 lg:px-8">
+                    <slot />
+                </div>
             </main>
         </div>
     </div>

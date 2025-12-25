@@ -67,5 +67,20 @@ class MediaItemController extends Controller
 
         return redirect()->route('admin.media-items.index')->with('success', 'تم حذف الملف بنجاح.');
     }
+
+    /**
+     * مسح مجلد الوسائط وإضافة الملفات الجديدة
+     */
+    public function scan()
+    {
+        try {
+            \Artisan::call('media:scan');
+            $output = \Artisan::output();
+            
+            return redirect()->route('admin.media-items.index')->with('success', 'تم مسح المجلد وإضافة الملفات الجديدة بنجاح.');
+        } catch (\Exception $e) {
+            return redirect()->route('admin.media-items.index')->with('error', 'حدث خطأ أثناء مسح المجلد: ' . $e->getMessage());
+        }
+    }
 }
 

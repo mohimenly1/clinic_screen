@@ -17,8 +17,44 @@ class ScreenController extends Controller
 {
     public function index(): Response
     {
+        $screens = Screen::with('assignment.assignable', 'backgroundAudio')
+            ->latest()
+            ->get()
+            ->map(function ($screen) {
+                $contentInfo = null;
+                if ($screen->assignment && $screen->assignment->assignable) {
+                    if ($screen->assignment->assignable_type === Playlist::class) {
+                        $playlist = $screen->assignment->assignable;
+                        $contentInfo = [
+                            'type' => 'playlist',
+                            'name' => $playlist->name,
+                            'media_count' => $playlist->mediaItems()->count(),
+                        ];
+                    } elseif ($screen->assignment->assignable_type === MediaItem::class) {
+                        $mediaItem = $screen->assignment->assignable;
+                        $contentInfo = [
+                            'type' => 'media',
+                            'name' => basename($mediaItem->file_path),
+                            'file_type' => $mediaItem->file_type,
+                        ];
+                    }
+                }
+
+                return [
+                    'id' => $screen->id,
+                    'name' => $screen->name,
+                    'screen_code' => $screen->screen_code,
+                    'orientation' => $screen->orientation,
+                    'resolution' => $screen->resolution,
+                    'is_active' => $screen->is_active,
+                    'content' => $contentInfo,
+                    'has_background_audio' => $screen->backgroundAudio !== null,
+                    'created_at' => $screen->created_at,
+                ];
+            });
+
         return Inertia::render('Admin/Screens/Index', [
-            'screens' => Screen::latest()->get(),
+            'screens' => $screens,
         ]);
     }
 

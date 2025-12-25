@@ -15,8 +15,34 @@ class PlaylistController extends Controller
 {
     public function index()
     {
+        $playlists = Playlist::withCount('mediaItems')->latest()->get()->map(function ($playlist) {
+            // جلب الشاشات المرتبطة بهذه القائمة
+            $screens = ScreenAssignment::where('assignable_type', Playlist::class)
+                ->where('assignable_id', $playlist->id)
+                ->with('screen')
+                ->get()
+                ->map(function ($assignment) {
+                    return $assignment->screen ? [
+                        'id' => $assignment->screen->id,
+                        'name' => $assignment->screen->name,
+                        'screen_code' => $assignment->screen->screen_code,
+                    ] : null;
+                })
+                ->filter()
+                ->values();
+
+            return [
+                'id' => $playlist->id,
+                'name' => $playlist->name,
+                'media_items_count' => $playlist->media_items_count,
+                'screens' => $screens,
+                'created_at' => $playlist->created_at,
+                'updated_at' => $playlist->updated_at,
+            ];
+        });
+
         return Inertia::render('Admin/Playlists/Index', [
-            'playlists' => Playlist::latest()->get(),
+            'playlists' => $playlists,
         ]);
     }
 

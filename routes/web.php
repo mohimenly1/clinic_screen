@@ -38,7 +38,14 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
+    return Inertia::render('Dashboard', [
+        'stats' => [
+            'screens' => \App\Models\Screen::count(),
+            'media_items' => \App\Models\MediaItem::count(),
+            'playlists' => \App\Models\Playlist::count(),
+            'doctors' => \App\Models\Doctor::count(),
+        ],
+    ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 // مسارات لوحة التحكم (محمية وتتطلب تسجيل الدخول)
@@ -46,6 +53,7 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     // CRUD Routes لكل قسم
     Route::resource('screens', ScreenController::class);
     Route::resource('media-items', MediaItemController::class);
+    Route::post('media-items/scan', [MediaItemController::class, 'scan'])->name('media-items.scan');
     Route::resource('playlists', PlaylistController::class);
     Route::resource('departments', DepartmentController::class);
     Route::resource('doctors', DoctorController::class);

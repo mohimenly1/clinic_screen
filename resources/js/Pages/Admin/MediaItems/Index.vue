@@ -33,12 +33,20 @@ const closePreview = () => {
         <template #header>
             <div class="flex justify-between items-center">
                 <h2 class="font-semibold text-xl text-gray-800 leading-tight">مكتبة الوسائط</h2>
-                <Link :href="route('admin.media-items.create')" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring ring-indigo-300 disabled:opacity-25 transition ease-in-out duration-150">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 rtl:ml-2 ltr:mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                    </svg>
-                    <span>رفع ملفات جديدة</span>
-                </Link>
+                <div class="flex gap-3">
+                    <Link :href="route('admin.media-items.scan')" method="post" as="button" class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 rtl:ml-2 ltr:mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        <span>مسح المجلد</span>
+                    </Link>
+                    <Link :href="route('admin.media-items.create')" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring ring-indigo-300 disabled:opacity-25 transition ease-in-out duration-150">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 rtl:ml-2 ltr:mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        </svg>
+                        <span>رفع ملفات جديدة</span>
+                    </Link>
+                </div>
             </div>
         </template>
 
@@ -48,6 +56,23 @@ const closePreview = () => {
                 <div v-if="flash.success" class="mb-4 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-md shadow-md" role="alert">
                     <p class="font-bold">نجاح</p>
                     <p>{{ flash.success }}</p>
+                </div>
+                <div v-if="flash.error" class="mb-4 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md shadow-md" role="alert">
+                    <p class="font-bold">خطأ</p>
+                    <p>{{ flash.error }}</p>
+                </div>
+                
+                <!-- Info Box about folder scanning -->
+                <div class="mb-4 bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 rounded-md shadow-sm" role="alert">
+                    <div class="flex items-start">
+                        <svg class="h-5 w-5 ml-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div>
+                            <p class="font-semibold mb-1">💡 نصيحة: رفع الملفات الكبيرة</p>
+                            <p class="text-sm">يمكنك نسخ الملفات مباشرة إلى مجلد <code class="bg-blue-100 px-1 rounded">storage/app/public/media/</code> ثم الضغط على زر "مسح المجلد" لإضافتها تلقائياً.</p>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">

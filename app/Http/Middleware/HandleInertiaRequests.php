@@ -29,10 +29,21 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
+        $permissions = $user ? $user->getAllPermissions()->pluck('name')->toArray() : [];
+
+        // تحديث is_admin ليعكس حالة المستخدم (is_admin أو super_admin)
+        // هذا يضمن أن Vue components ترى is_admin = true للمستخدمين الذين لديهم دور super_admin
+        if ($user) {
+            // تحديث is_admin attribute مباشرة على user object
+            $user->is_admin = $user->isSystemAdmin();
+        }
+
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $user,
+                'permissions' => $permissions,
             ],
             // >> إضافة هذا الجزء لمشاركة رسائل النجاح والخطأ
             'flash' => [

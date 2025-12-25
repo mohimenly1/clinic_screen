@@ -1,13 +1,19 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+import { hasPermission } from '@/utils/permissions';
 
 defineProps({
     mediaItems: Array,
 });
 
 const { flash } = usePage().props;
+
+// الصلاحيات
+const canCreateMedia = computed(() => hasPermission('create_media'));
+const canScanMedia = computed(() => hasPermission('manage_media'));
+const canDeleteMedia = computed(() => hasPermission('delete_media'));
 
 // متغيرات للتحكم في نافذة المعاينة
 const isPreviewModalOpen = ref(false);
@@ -33,14 +39,24 @@ const closePreview = () => {
         <template #header>
             <div class="flex justify-between items-center">
                 <h2 class="font-semibold text-xl text-gray-800 leading-tight">مكتبة الوسائط</h2>
-                <div class="flex gap-3">
-                    <Link :href="route('admin.media-items.scan')" method="post" as="button" class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                <div v-if="canScanMedia || canCreateMedia" class="flex gap-3">
+                    <Link 
+                        v-if="canScanMedia"
+                        :href="route('admin.media-items.scan')" 
+                        method="post" 
+                        as="button" 
+                        class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                    >
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 rtl:ml-2 ltr:mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                         <span>مسح المجلد</span>
                     </Link>
-                    <Link :href="route('admin.media-items.create')" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring ring-indigo-300 disabled:opacity-25 transition ease-in-out duration-150">
+                    <Link 
+                        v-if="canCreateMedia"
+                        :href="route('admin.media-items.create')" 
+                        class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring ring-indigo-300 disabled:opacity-25 transition ease-in-out duration-150"
+                    >
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 rtl:ml-2 ltr:mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                         </svg>

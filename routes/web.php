@@ -12,6 +12,8 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Admin\BroadcastController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\RoleController;
 use App\Events\PusherTestEvent;
 
 Route::get('/test-broadcast', function () {
@@ -65,6 +67,10 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
         Route::get('broadcast', [BroadcastController::class, 'index'])->name('broadcast.index');
         Route::post('broadcast', [BroadcastController::class, 'store'])->name('broadcast.store');
         Route::delete('broadcast', [BroadcastController::class, 'destroy'])->name('broadcast.destroy');
+
+        // **جديد**: مسارات إدارة المستخدمين والأدوار
+        Route::resource('users', UserController::class);
+        Route::resource('roles', RoleController::class);
 
 });
 

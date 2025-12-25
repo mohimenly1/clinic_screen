@@ -16,22 +16,29 @@ class DoctorController extends Controller
 {
     public function index(): Response
     {
-        return Inertia::render('Admin/Doctors/Index', [
-            'doctors' => Doctor::with('department')->latest()->get()->map(function($doctor) {
+        $doctors = Doctor::with('department')
+            ->withCount('schedules')
+            ->latest()
+            ->get()
+            ->map(function($doctor) {
                 return [
                     'id' => $doctor->id,
                     'name' => $doctor->name,
                     'photo_url' => $doctor->photo_path ? Storage::url($doctor->photo_path) : null,
                     'department_name' => $doctor->department->name,
+                    'schedules_count' => $doctor->schedules_count,
                 ];
-            }),
+            });
+
+        return Inertia::render('Admin/Doctors/Index', [
+            'doctors' => $doctors,
         ]);
     }
 
     public function create(): Response
     {
         return Inertia::render('Admin/Doctors/Create', [
-            'departments' => Department::all(['id', 'name']),
+            'departments' => Department::orderBy('name')->get(['id', 'name']),
         ]);
     }
 
@@ -60,17 +67,27 @@ class DoctorController extends Controller
     public function edit(Doctor $doctor): Response
     {
         // ## تحديث: تحميل الجداول مع بيانات الطبيب
-        $doctor->load('schedules');
+        $doctor->load('schedules', 'department');
 
         return Inertia::render('Admin/Doctors/Edit', [
             'doctor' => [
                 'id' => $doctor->id,
                 'name' => $doctor->name,
                 'department_id' => $doctor->department_id,
+                'department_name' => $doctor->department->name,
                 'photo_url' => $doctor->photo_path ? Storage::url($doctor->photo_path) : null,
-                'schedules' => $doctor->schedules, // تمرير الجداول للواجهة
+                'schedules' => $doctor->schedules->map(function ($schedule) {
+                    return [
+                        'id' => $schedule->id,
+                        'day_of_week' => $schedule->day_of_week,
+                        'start_time' => $schedule->start_time,
+                        'end_time' => $schedule->end_time,
+                        'clinic_number' => $schedule->clinic_number,
+                        'floor' => $schedule->floor,
+                    ];
+                }),
             ],
-            'departments' => Department::all(['id', 'name']),
+            'departments' => Department::orderBy('name')->get(['id', 'name']),
         ]);
     }
 
@@ -111,12 +128,29 @@ class DoctorController extends Controller
         $request->validate([
             'day_of_week' => ['required', 'string', Rule::in(['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'])],
             'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i|after:start_time',
-            'clinic_number' => 'required|string|max:255',
+            'end_time' => [
+                'required',
+                'date_format:H:i',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($value && $request->start_time && strtotime($value) <= strtotime($request->start_time)) {
+                        $fail('وقت الانتهاء يجب أن يكون بعد وقت البدء.');
+                    }
+                },
+            ],
+            'department_id' => 'required|exists:departments,id',
             'floor' => 'required|string|max:255',
         ]);
 
-        $doctor->schedules()->create($request->all());
+        // نحصل على اسم القسم لاستخدامه كـ clinic_number
+        $department = Department::findOrFail($request->department_id);
+
+        $doctor->schedules()->create([
+            'day_of_week' => $request->day_of_week,
+            'start_time' => $request->start_time,
+            'end_time' => $request->end_time,
+            'clinic_number' => $department->name, // نستخدم اسم القسم
+            'floor' => $request->floor,
+        ]);
 
         return back()->with('success', 'تمت إضافة الموعد بنجاح.');
     }

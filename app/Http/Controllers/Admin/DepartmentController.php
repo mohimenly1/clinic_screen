@@ -12,8 +12,17 @@ class DepartmentController extends Controller
 {
     public function index(): Response
     {
+        $departments = Department::withCount('doctors')->latest()->get()->map(function ($department) {
+            return [
+                'id' => $department->id,
+                'name' => $department->name,
+                'doctors_count' => $department->doctors_count,
+                'created_at' => $department->created_at,
+            ];
+        });
+
         return Inertia::render('Admin/Departments/Index', [
-            'departments' => Department::latest()->get(),
+            'departments' => $departments,
         ]);
     }
 

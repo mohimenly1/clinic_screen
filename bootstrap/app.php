@@ -16,9 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
         ]);
 
-        // تسجيل اسم مختصر للـ Middleware الخاص بالمدير
+        // تسجيل اسم مختصر للـ Middleware الخاص بالمدير والصلاحيات
         $middleware->alias([
             'admin' => \App\Http\Middleware\CheckIsAdmin::class,
+            'permission' => \App\Http\Middleware\CheckPermission::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

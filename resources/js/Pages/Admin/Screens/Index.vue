@@ -1,6 +1,8 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
+import { hasPermission } from '@/utils/permissions';
 
 defineProps({
     screens: Array,
@@ -11,6 +13,11 @@ const { flash } = usePage().props;
 const getDisplayUrl = (screenCode) => {
     return route('display.show', screenCode);
 };
+
+// الصلاحيات
+const canCreateScreens = computed(() => hasPermission('create_screens'));
+const canEditScreens = computed(() => hasPermission('edit_screens'));
+const canDeleteScreens = computed(() => hasPermission('delete_screens'));
 </script>
 
 <template>
@@ -24,6 +31,7 @@ const getDisplayUrl = (screenCode) => {
                     <p class="mt-1 text-sm text-gray-600">إدارة وإعداد شاشات العرض في العيادة</p>
                 </div>
                 <Link 
+                    v-if="canCreateScreens"
                     :href="route('admin.screens.create')" 
                     class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg font-semibold shadow-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 hover:shadow-xl"
                 >
@@ -186,8 +194,9 @@ const getDisplayUrl = (screenCode) => {
                         </div>
 
                         <!-- Footer Actions -->
-                        <div class="pt-3 border-t border-gray-200 flex items-center gap-2">
+                        <div v-if="canEditScreens || canDeleteScreens" class="pt-3 border-t border-gray-200 flex items-center gap-2">
                             <Link 
+                                v-if="canEditScreens"
                                 :href="route('admin.screens.edit', screen.id)" 
                                 class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
                             >
@@ -197,6 +206,7 @@ const getDisplayUrl = (screenCode) => {
                                 تعديل
                             </Link>
                             <Link
+                                v-if="canDeleteScreens"
                                 :href="route('admin.screens.destroy', screen.id)"
                                 method="delete"
                                 as="button"
@@ -223,6 +233,7 @@ const getDisplayUrl = (screenCode) => {
                     <h3 class="text-lg font-semibold text-gray-900 mb-2">لا توجد شاشات</h3>
                     <p class="text-gray-500 mb-6">ابدأ بإنشاء شاشتك الأولى لإدارة المحتوى المعروض</p>
                     <Link 
+                        v-if="canCreateScreens"
                         :href="route('admin.screens.create')" 
                         class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg font-semibold shadow-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200"
                     >

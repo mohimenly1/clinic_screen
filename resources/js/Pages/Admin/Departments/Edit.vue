@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, useForm, Link } from '@inertiajs/vue3';
 
 const props = defineProps({
     department: Object
@@ -20,28 +20,86 @@ const submit = () => {
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">تعديل القسم</h2>
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900">تعديل القسم</h2>
+                    <p class="mt-1 text-sm text-gray-600">{{ form.name }}</p>
+                </div>
+                <Link
+                    :href="route('admin.departments.index')"
+                    class="inline-flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    رجوع
+                </Link>
+            </div>
         </template>
 
-        <div class="py-12">
-            <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6 bg-white border-b border-gray-200">
-                        <form @submit.prevent="submit">
-                            <div>
-                                <label for="name" class="block font-medium text-sm text-gray-700">اسم القسم</label>
-                                <input v-model="form.name" type="text" id="name" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
-                                <div v-if="form.errors.name" class="text-sm text-red-600 mt-2">{{ form.errors.name }}</div>
-                            </div>
-
-                            <div class="flex items-center justify-end mt-4">
-                                <button type="submit" :disabled="form.processing" class="px-4 py-2 bg-gray-800 text-white rounded-md">
-                                    تحديث
-                                </button>
-                            </div>
-                        </form>
+        <div class="space-y-6">
+            <!-- Info Card -->
+            <div class="bg-blue-50 border-r-4 border-blue-500 rounded-lg p-6">
+                <div class="flex items-start gap-4">
+                    <div class="flex-shrink-0">
+                        <svg class="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-semibold text-gray-900 mb-2">تعديل القسم الطبي</h3>
+                        <p class="text-sm text-gray-700">
+                            قم بتعديل اسم القسم. تأكد من أن الاسم واضح ومباشر ليكون سهلاً للزوار في نظام الاستعلامات.
+                        </p>
                     </div>
                 </div>
+            </div>
+
+            <!-- Form Card -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <form @submit.prevent="submit">
+                    <div class="p-8 space-y-6">
+                        <!-- Name Input -->
+                        <div>
+                            <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">
+                                اسم القسم <span class="text-red-500">*</span>
+                            </label>
+                            <input
+                                id="name"
+                                type="text"
+                                v-model="form.name"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                                placeholder="مثال: طب الأسنان"
+                                required
+                            />
+                            <p class="mt-1 text-xs text-gray-500">اسم واضح ومباشر للقسم الطبي</p>
+                            <div v-if="form.errors.name" class="mt-2 text-sm text-red-600">{{ form.errors.name }}</div>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="px-8 py-6 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
+                        <Link
+                            :href="route('admin.departments.index')"
+                            class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+                        >
+                            إلغاء
+                        </Link>
+                        <button
+                            type="submit"
+                            :disabled="form.processing"
+                            class="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg font-semibold shadow-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <span v-if="form.processing">جاري التحديث...</span>
+                            <span v-else class="flex items-center gap-2">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                                حفظ التغييرات
+                            </span>
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </AuthenticatedLayout>

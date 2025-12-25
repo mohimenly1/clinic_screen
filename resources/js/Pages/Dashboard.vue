@@ -1,6 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
 const props = defineProps({
     stats: {
@@ -13,6 +14,10 @@ const props = defineProps({
         }),
     },
 });
+
+const page = usePage();
+const user = computed(() => page.props.auth.user);
+const isAdmin = computed(() => user.value?.is_admin || false);
 
 const statsItems = [
     {
@@ -82,8 +87,8 @@ const quickLinks = [
         </template>
 
         <div class="space-y-6">
-            <!-- Stats Grid -->
-            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <!-- Stats Grid (Only for Admin) -->
+            <div v-if="isAdmin" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 <Link
                     v-for="stat in statsItems"
                     :key="stat.name"

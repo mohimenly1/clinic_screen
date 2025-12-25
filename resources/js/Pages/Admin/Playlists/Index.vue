@@ -1,12 +1,19 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
+import { hasPermission } from '@/utils/permissions';
 
 defineProps({
     playlists: Array,
 });
 
 const { flash } = usePage().props;
+
+// الصلاحيات
+const canCreatePlaylists = computed(() => hasPermission('create_playlists'));
+const canEditPlaylists = computed(() => hasPermission('edit_playlists'));
+const canDeletePlaylists = computed(() => hasPermission('delete_playlists'));
 </script>
 
 <template>
@@ -20,6 +27,7 @@ const { flash } = usePage().props;
                     <p class="mt-1 text-sm text-gray-600">إدارة قوائم الوسائط الخاصة بالشاشات</p>
                 </div>
                 <Link
+                    v-if="canCreatePlaylists"
                     :href="route('admin.playlists.create')"
                     class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg font-semibold shadow-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 hover:shadow-xl"
                 >
@@ -136,8 +144,9 @@ const { flash } = usePage().props;
                         </div>
 
                         <!-- Footer Actions -->
-                        <div class="pt-4 border-t border-gray-200 flex items-center gap-2">
+                        <div v-if="canEditPlaylists || canDeletePlaylists" class="pt-4 border-t border-gray-200 flex items-center gap-2">
                             <Link
+                                v-if="canEditPlaylists"
                                 :href="route('admin.playlists.edit', playlist.id)"
                                 class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
                             >
@@ -147,6 +156,7 @@ const { flash } = usePage().props;
                                 تعديل
                             </Link>
                             <Link
+                                v-if="canDeletePlaylists"
                                 :href="route('admin.playlists.destroy', playlist.id)"
                                 method="delete"
                                 as="button"
@@ -173,6 +183,7 @@ const { flash } = usePage().props;
                     <h3 class="text-lg font-semibold text-gray-900 mb-2">لا توجد قوائم تشغيل</h3>
                     <p class="text-gray-500 mb-6">ابدأ بإنشاء قائمة تشغيل جديدة لإدارة محتوى الشاشات</p>
                     <Link
+                        v-if="canCreatePlaylists"
                         :href="route('admin.playlists.create')"
                         class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg font-semibold shadow-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200"
                     >

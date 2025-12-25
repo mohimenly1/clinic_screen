@@ -2,6 +2,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
+import { hasPermission } from '@/utils/permissions';
 
 const props = defineProps({
     visualMediaItems: Array,
@@ -9,6 +10,9 @@ const props = defineProps({
 });
 
 const { flash } = usePage().props;
+
+// الصلاحيات
+const canManageBroadcast = computed(() => hasPermission('manage_broadcast'));
 
 const selectedMediaId = ref(null);
 const form = useForm({});
@@ -56,7 +60,12 @@ const currentlyBroadcastingItem = computed(() => {
                              <img v-if="currentlyBroadcastingItem.type === 'image'" :src="currentlyBroadcastingItem.url" class="w-full h-full object-cover">
                              <video v-else :src="currentlyBroadcastingItem.url" class="w-full h-full object-cover" muted></video>
                          </div>
-                         <button @click="stopBroadcast" :disabled="form.processing" class="px-6 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition">
+                         <button 
+                             v-if="canManageBroadcast"
+                             @click="stopBroadcast" 
+                             :disabled="form.processing" 
+                             class="px-6 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition"
+                         >
                              إيقاف البث
                          </button>
                     </div>
@@ -78,7 +87,12 @@ const currentlyBroadcastingItem = computed(() => {
                     </div>
                     <div class="mt-6 border-t pt-6">
                          <h3 class="text-lg font-medium text-gray-900">2. ابدأ البث لجميع الشاشات</h3>
-                         <button @click="startBroadcast" :disabled="form.processing || !selectedMediaId" class="mt-4 px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                         <button 
+                             v-if="canManageBroadcast"
+                             @click="startBroadcast" 
+                             :disabled="form.processing || !selectedMediaId" 
+                             class="mt-4 px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                         >
                              بدء البث الآن
                          </button>
                     </div>

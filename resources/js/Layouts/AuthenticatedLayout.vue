@@ -5,6 +5,7 @@ import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import SidebarLink from '@/Components/SidebarLink.vue';
 import { Link, usePage } from '@inertiajs/vue3';
+import { hasPermission } from '@/utils/permissions';
 
 const page = usePage();
 const showingMobileMenu = ref(false);
@@ -15,50 +16,69 @@ const isActive = (pattern) => {
     return route().current(pattern);
 };
 
-const navigation = computed(() => [
-    {
-        name: 'لوحة التحكم',
-        href: 'dashboard',
-        icon: 'dashboard',
-        active: isActive('dashboard'),
-    },
-    {
-        name: 'إدارة الشاشات',
-        href: 'admin.screens.index',
-        icon: 'screen',
-        active: isActive('admin.screens.*'),
-    },
-    {
-        name: 'مكتبة الوسائط',
-        href: 'admin.media-items.index',
-        icon: 'media',
-        active: isActive('admin.media-items.*'),
-    },
-    {
-        name: 'قوائم التشغيل',
-        href: 'admin.playlists.index',
-        icon: 'playlist',
-        active: isActive('admin.playlists.*'),
-    },
-    {
-        name: 'أقسام العيادة',
-        href: 'admin.departments.index',
-        icon: 'department',
-        active: isActive('admin.departments.*'),
-    },
-    {
-        name: 'الأطباء',
-        href: 'admin.doctors.index',
-        icon: 'doctor',
-        active: isActive('admin.doctors.*'),
-    },
-    {
-        name: 'البث العام',
-        href: 'admin.broadcast.index',
-        icon: 'broadcast',
-        active: isActive('admin.broadcast.*'),
-    },
-]);
+const navigation = computed(() => {
+    const allNavItems = [
+        {
+            name: 'لوحة التحكم',
+            href: 'dashboard',
+            icon: 'dashboard',
+            active: isActive('dashboard'),
+            permission: 'view_dashboard',
+        },
+        {
+            name: 'إدارة الشاشات',
+            href: 'admin.screens.index',
+            icon: 'screen',
+            active: isActive('admin.screens.*'),
+            permission: 'view_screens',
+        },
+        {
+            name: 'مكتبة الوسائط',
+            href: 'admin.media-items.index',
+            icon: 'media',
+            active: isActive('admin.media-items.*'),
+            permission: 'view_media',
+        },
+        {
+            name: 'قوائم التشغيل',
+            href: 'admin.playlists.index',
+            icon: 'playlist',
+            active: isActive('admin.playlists.*'),
+            permission: 'view_playlists',
+        },
+        {
+            name: 'أقسام العيادة',
+            href: 'admin.departments.index',
+            icon: 'department',
+            active: isActive('admin.departments.*'),
+            permission: 'view_departments',
+        },
+        {
+            name: 'الأطباء',
+            href: 'admin.doctors.index',
+            icon: 'doctor',
+            active: isActive('admin.doctors.*'),
+            permission: 'view_doctors',
+        },
+        {
+            name: 'البث العام',
+            href: 'admin.broadcast.index',
+            icon: 'broadcast',
+            active: isActive('admin.broadcast.*'),
+            permission: 'view_broadcast',
+        },
+        {
+            name: 'إدارة المستخدمين',
+            href: 'admin.users.index',
+            icon: 'users',
+            active: isActive('admin.users.*'),
+            permission: 'view_users',
+        },
+    ];
+
+    // تصفية العناصر بناءً على الصلاحيات
+    return allNavItems.filter(item => hasPermission(item.permission));
+});
 </script>
 
 <template>

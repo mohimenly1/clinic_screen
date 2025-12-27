@@ -41,18 +41,49 @@
             android:src="@android:drawable/ic_menu_help"
             android:tint="#FFFFFF" />
 
-        <!-- Microphone Button -->
-        <ImageButton
-            android:id="@+id/microphoneButton"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
+        <!-- Voice Recognition Container -->
+        <LinearLayout
+            android:id="@+id/voiceRecognitionContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
             android:layout_marginBottom="16dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="الميكروفون"
-            android:padding="12dp"
-            android:src="@android:drawable/ic_btn_speak_now"
-            android:tint="#FFFFFF"
-            android:visibility="gone" />
+            android:padding="8dp">
+
+            <!-- Voice Recognition Button -->
+            <ImageButton
+                android:id="@+id/voiceButton"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:background="@drawable/voice_button_background"
+                android:contentDescription="المساعد الذكي"
+                android:padding="12dp"
+                android:src="@android:drawable/ic_btn_speak_now"
+                android:tint="#FFFFFF" />
+
+            <!-- Voice Recognition Status Text -->
+            <TextView
+                android:id="@+id/voiceStatusText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text=""
+                android:textColor="#FFFFFF"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif"
+                android:visibility="gone"
+                android:background="@drawable/voice_status_background"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:gravity="center" />
+
+        </LinearLayout>
 
         <!-- Audio Control Button (Music) -->
         <ImageButton

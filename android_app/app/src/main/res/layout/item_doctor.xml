@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/doctorCard"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <!-- Doctor Photo - Smaller -->
+        <ImageView
+            android:id="@+id/doctorPhoto"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:scaleType="centerCrop"
+            android:src="@android:drawable/ic_menu_myplaces"
+            android:tint="#673AB7" />
+
+        <!-- Doctor Name -->
+        <TextView
+            android:id="@+id/doctorName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:text="اسم الطبيب"
+            android:textColor="#333333"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif" />
+
+        <!-- Schedules Count -->
+        <TextView
+            android:id="@+id/schedulesCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="0 موعد"
+            android:textColor="#666666"
+            android:textSize="11sp"
+            android:fontFamily="sans-serif"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>
+

@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -31,21 +32,30 @@ public final class ActivityMainBinding implements ViewBinding {
   public final FrameLayout mediaPlayerContainer;
 
   @NonNull
-  public final ImageButton microphoneButton;
+  public final LinearLayout sidebarToolsContainer;
 
   @NonNull
-  public final LinearLayout sidebarToolsContainer;
+  public final ImageButton voiceButton;
+
+  @NonNull
+  public final LinearLayout voiceRecognitionContainer;
+
+  @NonNull
+  public final TextView voiceStatusText;
 
   private ActivityMainBinding(@NonNull ConstraintLayout rootView,
       @NonNull ImageButton audioControlButton, @NonNull ImageButton inquiryButton,
-      @NonNull FrameLayout mediaPlayerContainer, @NonNull ImageButton microphoneButton,
-      @NonNull LinearLayout sidebarToolsContainer) {
+      @NonNull FrameLayout mediaPlayerContainer, @NonNull LinearLayout sidebarToolsContainer,
+      @NonNull ImageButton voiceButton, @NonNull LinearLayout voiceRecognitionContainer,
+      @NonNull TextView voiceStatusText) {
     this.rootView = rootView;
     this.audioControlButton = audioControlButton;
     this.inquiryButton = inquiryButton;
     this.mediaPlayerContainer = mediaPlayerContainer;
-    this.microphoneButton = microphoneButton;
     this.sidebarToolsContainer = sidebarToolsContainer;
+    this.voiceButton = voiceButton;
+    this.voiceRecognitionContainer = voiceRecognitionContainer;
+    this.voiceStatusText = voiceStatusText;
   }
 
   @Override
@@ -93,20 +103,33 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.microphoneButton;
-      ImageButton microphoneButton = ViewBindings.findChildViewById(rootView, id);
-      if (microphoneButton == null) {
-        break missingId;
-      }
-
       id = R.id.sidebarToolsContainer;
       LinearLayout sidebarToolsContainer = ViewBindings.findChildViewById(rootView, id);
       if (sidebarToolsContainer == null) {
         break missingId;
       }
 
+      id = R.id.voiceButton;
+      ImageButton voiceButton = ViewBindings.findChildViewById(rootView, id);
+      if (voiceButton == null) {
+        break missingId;
+      }
+
+      id = R.id.voiceRecognitionContainer;
+      LinearLayout voiceRecognitionContainer = ViewBindings.findChildViewById(rootView, id);
+      if (voiceRecognitionContainer == null) {
+        break missingId;
+      }
+
+      id = R.id.voiceStatusText;
+      TextView voiceStatusText = ViewBindings.findChildViewById(rootView, id);
+      if (voiceStatusText == null) {
+        break missingId;
+      }
+
       return new ActivityMainBinding((ConstraintLayout) rootView, audioControlButton, inquiryButton,
-          mediaPlayerContainer, microphoneButton, sidebarToolsContainer);
+          mediaPlayerContainer, sidebarToolsContainer, voiceButton, voiceRecognitionContainer,
+          voiceStatusText);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

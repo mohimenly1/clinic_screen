@@ -7,6 +7,7 @@ use App\Http\Resources\MediaItemResource;
 use App\Models\Screen;
 use App\Models\MediaItem;
 use App\Models\Playlist;
+use App\Models\Department;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
@@ -82,6 +83,34 @@ class ScreenController extends Controller
                 }
             }
 
+            // Get departments with doctors and schedules for inquiry feature
+            $departments = Department::with(['doctors.schedules'])
+                ->orderBy('name')
+                ->get()
+                ->map(function ($department) {
+                    return [
+                        'id' => $department->id,
+                        'name' => $department->name,
+                        'doctors' => $department->doctors->map(function ($doctor) {
+                            return [
+                                'id' => $doctor->id,
+                                'name' => $doctor->name,
+                                'photo_url' => $doctor->photo_path ? Storage::url($doctor->photo_path) : null,
+                                'schedules' => $doctor->schedules->map(function ($schedule) {
+                                    return [
+                                        'id' => $schedule->id,
+                                        'day_of_week' => $schedule->day_of_week,
+                                        'start_time' => $schedule->start_time,
+                                        'end_time' => $schedule->end_time,
+                                        'clinic_number' => $schedule->clinic_number,
+                                        'floor' => $schedule->floor,
+                                    ];
+                                })->all(),
+                            ];
+                        })->all(),
+                    ];
+                })->all();
+
             $response = response()->json([
                 'success' => true,
                 'data' => [
@@ -95,6 +124,7 @@ class ScreenController extends Controller
                     'media_items' => $formattedMedia->collection->all(),
                     'background_audio_url' => $backgroundAudioUrl,
                     'broadcast_item' => $broadcastItem,
+                    'departments' => $departments,
                 ],
             ]);
             

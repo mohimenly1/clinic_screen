@@ -18,200 +18,203 @@
 14    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 14-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:8:5-71
 14-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:8:22-68
-15    <uses-permission android:name="android.permission.WAKE_LOCK" />
-15-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:9:5-68
-15-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:9:22-65
-16    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-16-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:10:5-77
-16-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:10:22-74
-17    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
-17-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:11:5-92
-17-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:11:22-89
-18
-19    <permission
-19-->[androidx.core:core:1.12.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/38c22a3e2e2ed8547423e13bdba73ada/transformed/core-1.12.0/AndroidManifest.xml:22:5-24:47
-20        android:name="com.clinic.screen.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
-20-->[androidx.core:core:1.12.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/38c22a3e2e2ed8547423e13bdba73ada/transformed/core-1.12.0/AndroidManifest.xml:23:9-81
-21        android:protectionLevel="signature" />
-21-->[androidx.core:core:1.12.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/38c22a3e2e2ed8547423e13bdba73ada/transformed/core-1.12.0/AndroidManifest.xml:24:9-44
-22
-23    <uses-permission android:name="com.clinic.screen.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
-23-->[androidx.core:core:1.12.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/38c22a3e2e2ed8547423e13bdba73ada/transformed/core-1.12.0/AndroidManifest.xml:26:5-97
-23-->[androidx.core:core:1.12.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/38c22a3e2e2ed8547423e13bdba73ada/transformed/core-1.12.0/AndroidManifest.xml:26:22-94
-24
-25    <application
-25-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:13:5-59:19
-26        android:name="com.clinic.screen.ClinicScreenApplication"
-26-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:14:9-48
-27        android:allowBackup="true"
-27-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:15:9-35
-28        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
-28-->[androidx.core:core:1.12.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/38c22a3e2e2ed8547423e13bdba73ada/transformed/core-1.12.0/AndroidManifest.xml:28:18-86
-29        android:debuggable="true"
-30        android:extractNativeLibs="false"
-31        android:icon="@android:drawable/ic_menu_view"
-31-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:16:9-54
-32        android:label="@string/app_name"
-32-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:17:9-41
-33        android:roundIcon="@android:drawable/ic_menu_view"
-33-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:18:9-59
-34        android:supportsRtl="true"
-34-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:19:9-35
-35        android:testOnly="true"
-36        android:theme="@style/Theme.ClinicScreen"
-36-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:20:9-50
-37        android:usesCleartextTraffic="true" >
-37-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:21:9-44
-38
-39        <!-- Setup Activity - First screen for entering screen code -->
-40        <activity
-40-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:25:9-34:20
-41            android:name="com.clinic.screen.ui.setup.SetupActivity"
-41-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:26:13-51
-42            android:configChanges="orientation|screenSize|keyboardHidden"
-42-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:27:13-74
-43            android:exported="true"
-43-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:28:13-36
-44            android:theme="@style/Theme.ClinicScreen" >
-44-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:29:13-54
-45            <intent-filter>
-45-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:30:13-33:29
-46                <action android:name="android.intent.action.MAIN" />
-46-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:31:17-69
-46-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:31:25-66
-47
-48                <category android:name="android.intent.category.LAUNCHER" />
-48-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:32:17-77
-48-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:32:27-74
-49            </intent-filter>
-50        </activity>
-51
-52        <!-- Main Activity - Full Screen Kiosk Mode -->
-53        <activity
-53-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:37:9-51:20
-54            android:name="com.clinic.screen.ui.main.MainActivity"
-54-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:38:13-49
-55            android:configChanges="orientation|screenSize|keyboardHidden"
-55-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:39:13-74
-56            android:exported="false"
-56-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:40:13-37
-57            android:launchMode="singleTask"
-57-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:41:13-44
-58            android:screenOrientation="landscape"
-58-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:42:13-50
-59            android:theme="@style/Theme.ClinicScreen.FullScreen" >
-59-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:43:13-65
-60
-61            <!-- Intent to receive screen code -->
-62            <intent-filter>
-62-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:46:13-50:29
-63                <action android:name="android.intent.action.VIEW" />
-63-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:47:17-69
-63-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:47:25-66
-64
-65                <category android:name="android.intent.category.DEFAULT" />
-65-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:48:17-76
-65-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:48:27-73
-66
-67                <data
-67-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:49:17-78
-68                    android:host="display"
-68-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:49:53-75
-69                    android:scheme="clinicscreen" />
-69-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:49:23-52
-70            </intent-filter>
-71        </activity>
-72
-73        <!-- Media Service for Background Playback -->
-74        <service
-74-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:54:9-58:61
-75            android:name="com.clinic.screen.service.MediaPlaybackService"
-75-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:55:13-57
-76            android:enabled="true"
-76-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:56:13-35
-77            android:exported="false"
-77-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:57:13-37
-78            android:foregroundServiceType="mediaPlayback" />
-78-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:58:13-58
-79
-80        <provider
-80-->[androidx.emoji2:emoji2:1.2.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/4182f43019e8dbdf28cc216339a09760/transformed/emoji2-1.2.0/AndroidManifest.xml:24:9-32:20
-81            android:name="androidx.startup.InitializationProvider"
-81-->[androidx.emoji2:emoji2:1.2.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/4182f43019e8dbdf28cc216339a09760/transformed/emoji2-1.2.0/AndroidManifest.xml:25:13-67
-82            android:authorities="com.clinic.screen.androidx-startup"
-82-->[androidx.emoji2:emoji2:1.2.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/4182f43019e8dbdf28cc216339a09760/transformed/emoji2-1.2.0/AndroidManifest.xml:26:13-68
-83            android:exported="false" >
-83-->[androidx.emoji2:emoji2:1.2.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/4182f43019e8dbdf28cc216339a09760/transformed/emoji2-1.2.0/AndroidManifest.xml:27:13-37
-84            <meta-data
-84-->[androidx.emoji2:emoji2:1.2.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/4182f43019e8dbdf28cc216339a09760/transformed/emoji2-1.2.0/AndroidManifest.xml:29:13-31:52
-85                android:name="androidx.emoji2.text.EmojiCompatInitializer"
-85-->[androidx.emoji2:emoji2:1.2.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/4182f43019e8dbdf28cc216339a09760/transformed/emoji2-1.2.0/AndroidManifest.xml:30:17-75
-86                android:value="androidx.startup" />
-86-->[androidx.emoji2:emoji2:1.2.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/4182f43019e8dbdf28cc216339a09760/transformed/emoji2-1.2.0/AndroidManifest.xml:31:17-49
-87            <meta-data
-87-->[androidx.lifecycle:lifecycle-process:2.7.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/acac05c0f0873ec78396298833d39d25/transformed/lifecycle-process-2.7.0/AndroidManifest.xml:29:13-31:52
-88                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
-88-->[androidx.lifecycle:lifecycle-process:2.7.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/acac05c0f0873ec78396298833d39d25/transformed/lifecycle-process-2.7.0/AndroidManifest.xml:30:17-78
-89                android:value="androidx.startup" />
-89-->[androidx.lifecycle:lifecycle-process:2.7.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/acac05c0f0873ec78396298833d39d25/transformed/lifecycle-process-2.7.0/AndroidManifest.xml:31:17-49
-90            <meta-data
-90-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/b1e30af28727ae9226650e987d867588/transformed/profileinstaller-1.3.0/AndroidManifest.xml:29:13-31:52
-91                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
-91-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/b1e30af28727ae9226650e987d867588/transformed/profileinstaller-1.3.0/AndroidManifest.xml:30:17-85
-92                android:value="androidx.startup" />
-92-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/b1e30af28727ae9226650e987d867588/transformed/profileinstaller-1.3.0/AndroidManifest.xml:31:17-49
-93        </provider>
-94
-95        <uses-library
-95-->[androidx.window:window:1.0.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/bc0dee807da901b0e09a795b61127239/transformed/window-1.0.0/AndroidManifest.xml:25:9-27:40
-96            android:name="androidx.window.extensions"
-96-->[androidx.window:window:1.0.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/bc0dee807da901b0e09a795b61127239/transformed/window-1.0.0/AndroidManifest.xml:26:13-54
-97            android:required="false" />
-97-->[androidx.window:window:1.0.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/bc0dee807da901b0e09a795b61127239/transformed/window-1.0.0/AndroidManifest.xml:27:13-37
-98        <uses-library
-98-->[androidx.window:window:1.0.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/bc0dee807da901b0e09a795b61127239/transformed/window-1.0.0/AndroidManifest.xml:28:9-30:40
-99            android:name="androidx.window.sidecar"
-99-->[androidx.window:window:1.0.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/bc0dee807da901b0e09a795b61127239/transformed/window-1.0.0/AndroidManifest.xml:29:13-51
-100            android:required="false" />
-100-->[androidx.window:window:1.0.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/bc0dee807da901b0e09a795b61127239/transformed/window-1.0.0/AndroidManifest.xml:30:13-37
-101
-102        <receiver
-102-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/b1e30af28727ae9226650e987d867588/transformed/profileinstaller-1.3.0/AndroidManifest.xml:34:9-52:20
-103            android:name="androidx.profileinstaller.ProfileInstallReceiver"
-103-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/b1e30af28727ae9226650e987d867588/transformed/profileinstaller-1.3.0/AndroidManifest.xml:35:13-76
-104            android:directBootAware="false"
-104-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/b1e30af28727ae9226650e987d867588/transformed/profileinstaller-1.3.0/AndroidManifest.xml:36:13-44
-105            android:enabled="true"
-105-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/b1e30af28727ae9226650e987d867588/transformed/profileinstaller-1.3.0/AndroidManifest.xml:37:13-35
-106            android:exported="true"
-106-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/b1e30af28727ae9226650e987d867588/transformed/profileinstaller-1.3.0/AndroidManifest.xml:38:13-36
-107            android:permission="android.permission.DUMP" >
-107-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/b1e30af28727ae9226650e987d867588/transformed/profileinstaller-1.3.0/AndroidManifest.xml:39:13-57
-108            <intent-filter>
-108-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/b1e30af28727ae9226650e987d867588/transformed/profileinstaller-1.3.0/AndroidManifest.xml:40:13-42:29
-109                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
-109-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/b1e30af28727ae9226650e987d867588/transformed/profileinstaller-1.3.0/AndroidManifest.xml:41:17-91
-109-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/b1e30af28727ae9226650e987d867588/transformed/profileinstaller-1.3.0/AndroidManifest.xml:41:25-88
-110            </intent-filter>
-111            <intent-filter>
-111-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/b1e30af28727ae9226650e987d867588/transformed/profileinstaller-1.3.0/AndroidManifest.xml:43:13-45:29
-112                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
-112-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/b1e30af28727ae9226650e987d867588/transformed/profileinstaller-1.3.0/AndroidManifest.xml:44:17-85
-112-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/b1e30af28727ae9226650e987d867588/transformed/profileinstaller-1.3.0/AndroidManifest.xml:44:25-82
-113            </intent-filter>
-114            <intent-filter>
-114-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/b1e30af28727ae9226650e987d867588/transformed/profileinstaller-1.3.0/AndroidManifest.xml:46:13-48:29
-115                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
-115-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/b1e30af28727ae9226650e987d867588/transformed/profileinstaller-1.3.0/AndroidManifest.xml:47:17-88
-115-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/b1e30af28727ae9226650e987d867588/transformed/profileinstaller-1.3.0/AndroidManifest.xml:47:25-85
-116            </intent-filter>
-117            <intent-filter>
-117-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/b1e30af28727ae9226650e987d867588/transformed/profileinstaller-1.3.0/AndroidManifest.xml:49:13-51:29
-118                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
-118-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/b1e30af28727ae9226650e987d867588/transformed/profileinstaller-1.3.0/AndroidManifest.xml:50:17-95
-118-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/b1e30af28727ae9226650e987d867588/transformed/profileinstaller-1.3.0/AndroidManifest.xml:50:25-92
-119            </intent-filter>
-120        </receiver>
-121    </application>
-122
-123</manifest>
+15    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+15-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:8:5-71
+15-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:8:22-68
+16    <uses-permission android:name="android.permission.WAKE_LOCK" />
+16-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:10:5-68
+16-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:10:22-65
+17    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+17-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:11:5-77
+17-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:11:22-74
+18    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+18-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:12:5-92
+18-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:12:22-89
+19
+20    <permission
+20-->[androidx.core:core:1.12.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/628b3d9f5e18cd6c52f298dd58625958/transformed/core-1.12.0/AndroidManifest.xml:22:5-24:47
+21        android:name="com.clinic.screen.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+21-->[androidx.core:core:1.12.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/628b3d9f5e18cd6c52f298dd58625958/transformed/core-1.12.0/AndroidManifest.xml:23:9-81
+22        android:protectionLevel="signature" />
+22-->[androidx.core:core:1.12.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/628b3d9f5e18cd6c52f298dd58625958/transformed/core-1.12.0/AndroidManifest.xml:24:9-44
+23
+24    <uses-permission android:name="com.clinic.screen.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+24-->[androidx.core:core:1.12.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/628b3d9f5e18cd6c52f298dd58625958/transformed/core-1.12.0/AndroidManifest.xml:26:5-97
+24-->[androidx.core:core:1.12.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/628b3d9f5e18cd6c52f298dd58625958/transformed/core-1.12.0/AndroidManifest.xml:26:22-94
+25
+26    <application
+26-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:14:5-60:19
+27        android:name="com.clinic.screen.ClinicScreenApplication"
+27-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:15:9-48
+28        android:allowBackup="true"
+28-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:16:9-35
+29        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+29-->[androidx.core:core:1.12.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/628b3d9f5e18cd6c52f298dd58625958/transformed/core-1.12.0/AndroidManifest.xml:28:18-86
+30        android:debuggable="true"
+31        android:extractNativeLibs="false"
+32        android:icon="@android:drawable/ic_menu_view"
+32-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:17:9-54
+33        android:label="@string/app_name"
+33-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:18:9-41
+34        android:roundIcon="@android:drawable/ic_menu_view"
+34-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:19:9-59
+35        android:supportsRtl="true"
+35-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:20:9-35
+36        android:testOnly="true"
+37        android:theme="@style/Theme.ClinicScreen"
+37-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:21:9-50
+38        android:usesCleartextTraffic="true" >
+38-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:22:9-44
+39
+40        <!-- Setup Activity - First screen for entering screen code -->
+41        <activity
+41-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:26:9-35:20
+42            android:name="com.clinic.screen.ui.setup.SetupActivity"
+42-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:27:13-51
+43            android:configChanges="orientation|screenSize|keyboardHidden"
+43-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:28:13-74
+44            android:exported="true"
+44-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:29:13-36
+45            android:theme="@style/Theme.ClinicScreen" >
+45-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:30:13-54
+46            <intent-filter>
+46-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:31:13-34:29
+47                <action android:name="android.intent.action.MAIN" />
+47-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:32:17-69
+47-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:32:25-66
+48
+49                <category android:name="android.intent.category.LAUNCHER" />
+49-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:33:17-77
+49-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:33:27-74
+50            </intent-filter>
+51        </activity>
+52
+53        <!-- Main Activity - Full Screen Kiosk Mode -->
+54        <activity
+54-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:38:9-52:20
+55            android:name="com.clinic.screen.ui.main.MainActivity"
+55-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:39:13-49
+56            android:configChanges="orientation|screenSize|keyboardHidden"
+56-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:40:13-74
+57            android:exported="false"
+57-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:41:13-37
+58            android:launchMode="singleTask"
+58-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:42:13-44
+59            android:screenOrientation="landscape"
+59-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:43:13-50
+60            android:theme="@style/Theme.ClinicScreen.FullScreen" >
+60-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:44:13-65
+61
+62            <!-- Intent to receive screen code -->
+63            <intent-filter>
+63-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:47:13-51:29
+64                <action android:name="android.intent.action.VIEW" />
+64-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:48:17-69
+64-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:48:25-66
+65
+66                <category android:name="android.intent.category.DEFAULT" />
+66-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:49:17-76
+66-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:49:27-73
+67
+68                <data
+68-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:50:17-78
+69                    android:host="display"
+69-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:50:53-75
+70                    android:scheme="clinicscreen" />
+70-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:50:23-52
+71            </intent-filter>
+72        </activity>
+73
+74        <!-- Media Service for Background Playback -->
+75        <service
+75-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:55:9-59:61
+76            android:name="com.clinic.screen.service.MediaPlaybackService"
+76-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:56:13-57
+77            android:enabled="true"
+77-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:57:13-35
+78            android:exported="false"
+78-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:58:13-37
+79            android:foregroundServiceType="mediaPlayback" />
+79-->/Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/AndroidManifest.xml:59:13-58
+80
+81        <provider
+81-->[androidx.emoji2:emoji2:1.2.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/115431791705f3200d12ec1482b07288/transformed/emoji2-1.2.0/AndroidManifest.xml:24:9-32:20
+82            android:name="androidx.startup.InitializationProvider"
+82-->[androidx.emoji2:emoji2:1.2.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/115431791705f3200d12ec1482b07288/transformed/emoji2-1.2.0/AndroidManifest.xml:25:13-67
+83            android:authorities="com.clinic.screen.androidx-startup"
+83-->[androidx.emoji2:emoji2:1.2.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/115431791705f3200d12ec1482b07288/transformed/emoji2-1.2.0/AndroidManifest.xml:26:13-68
+84            android:exported="false" >
+84-->[androidx.emoji2:emoji2:1.2.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/115431791705f3200d12ec1482b07288/transformed/emoji2-1.2.0/AndroidManifest.xml:27:13-37
+85            <meta-data
+85-->[androidx.emoji2:emoji2:1.2.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/115431791705f3200d12ec1482b07288/transformed/emoji2-1.2.0/AndroidManifest.xml:29:13-31:52
+86                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+86-->[androidx.emoji2:emoji2:1.2.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/115431791705f3200d12ec1482b07288/transformed/emoji2-1.2.0/AndroidManifest.xml:30:17-75
+87                android:value="androidx.startup" />
+87-->[androidx.emoji2:emoji2:1.2.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/115431791705f3200d12ec1482b07288/transformed/emoji2-1.2.0/AndroidManifest.xml:31:17-49
+88            <meta-data
+88-->[androidx.lifecycle:lifecycle-process:2.7.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/369ddd754494b0d899f3077e7240e758/transformed/lifecycle-process-2.7.0/AndroidManifest.xml:29:13-31:52
+89                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+89-->[androidx.lifecycle:lifecycle-process:2.7.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/369ddd754494b0d899f3077e7240e758/transformed/lifecycle-process-2.7.0/AndroidManifest.xml:30:17-78
+90                android:value="androidx.startup" />
+90-->[androidx.lifecycle:lifecycle-process:2.7.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/369ddd754494b0d899f3077e7240e758/transformed/lifecycle-process-2.7.0/AndroidManifest.xml:31:17-49
+91            <meta-data
+91-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/efe639a4f2f0098857a2442be2ead84e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:29:13-31:52
+92                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+92-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/efe639a4f2f0098857a2442be2ead84e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:30:17-85
+93                android:value="androidx.startup" />
+93-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/efe639a4f2f0098857a2442be2ead84e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:31:17-49
+94        </provider>
+95
+96        <uses-library
+96-->[androidx.window:window:1.0.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/cb02b05d96ed8fda98b4f71f6edb2f6e/transformed/window-1.0.0/AndroidManifest.xml:25:9-27:40
+97            android:name="androidx.window.extensions"
+97-->[androidx.window:window:1.0.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/cb02b05d96ed8fda98b4f71f6edb2f6e/transformed/window-1.0.0/AndroidManifest.xml:26:13-54
+98            android:required="false" />
+98-->[androidx.window:window:1.0.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/cb02b05d96ed8fda98b4f71f6edb2f6e/transformed/window-1.0.0/AndroidManifest.xml:27:13-37
+99        <uses-library
+99-->[androidx.window:window:1.0.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/cb02b05d96ed8fda98b4f71f6edb2f6e/transformed/window-1.0.0/AndroidManifest.xml:28:9-30:40
+100            android:name="androidx.window.sidecar"
+100-->[androidx.window:window:1.0.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/cb02b05d96ed8fda98b4f71f6edb2f6e/transformed/window-1.0.0/AndroidManifest.xml:29:13-51
+101            android:required="false" />
+101-->[androidx.window:window:1.0.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/cb02b05d96ed8fda98b4f71f6edb2f6e/transformed/window-1.0.0/AndroidManifest.xml:30:13-37
+102
+103        <receiver
+103-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/efe639a4f2f0098857a2442be2ead84e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:34:9-52:20
+104            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+104-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/efe639a4f2f0098857a2442be2ead84e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:35:13-76
+105            android:directBootAware="false"
+105-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/efe639a4f2f0098857a2442be2ead84e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:36:13-44
+106            android:enabled="true"
+106-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/efe639a4f2f0098857a2442be2ead84e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:37:13-35
+107            android:exported="true"
+107-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/efe639a4f2f0098857a2442be2ead84e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:38:13-36
+108            android:permission="android.permission.DUMP" >
+108-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/efe639a4f2f0098857a2442be2ead84e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:39:13-57
+109            <intent-filter>
+109-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/efe639a4f2f0098857a2442be2ead84e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:40:13-42:29
+110                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+110-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/efe639a4f2f0098857a2442be2ead84e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:41:17-91
+110-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/efe639a4f2f0098857a2442be2ead84e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:41:25-88
+111            </intent-filter>
+112            <intent-filter>
+112-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/efe639a4f2f0098857a2442be2ead84e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:43:13-45:29
+113                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+113-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/efe639a4f2f0098857a2442be2ead84e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:44:17-85
+113-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/efe639a4f2f0098857a2442be2ead84e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:44:25-82
+114            </intent-filter>
+115            <intent-filter>
+115-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/efe639a4f2f0098857a2442be2ead84e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:46:13-48:29
+116                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+116-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/efe639a4f2f0098857a2442be2ead84e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:47:17-88
+116-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/efe639a4f2f0098857a2442be2ead84e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:47:25-85
+117            </intent-filter>
+118            <intent-filter>
+118-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/efe639a4f2f0098857a2442be2ead84e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:49:13-51:29
+119                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+119-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/efe639a4f2f0098857a2442be2ead84e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:50:17-95
+119-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/sulimangzllal/.gradle/caches/8.13/transforms/efe639a4f2f0098857a2442be2ead84e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:50:25-92
+120            </intent-filter>
+121        </receiver>
+122    </application>
+123
+124</manifest>

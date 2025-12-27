@@ -4,7 +4,7 @@
             "outputFile": "com.clinic.screen.app-mergeDebugResources-51:/values-v16/values-v16.xml",
             "map": [
                 {
-                    "source": "/Users/sulimangzllal/.gradle/caches/8.11.1/transforms/0b37b9eace45cf7e79d5723afd78e77a/transformed/appcompat-1.6.1/res/values-v16/values-v16.xml",
+                    "source": "/Users/sulimangzllal/.gradle/caches/8.13/transforms/c972fd1de642ac9fe77152cbedc09a61/transformed/appcompat-1.6.1/res/values-v16/values-v16.xml",
                     "from": {
                         "startLines": "2",
                         "startColumns": "4",
@@ -23,7 +23,7 @@
                     }
                 },
                 {
-                    "source": "/Users/sulimangzllal/.gradle/caches/8.11.1/transforms/38c22a3e2e2ed8547423e13bdba73ada/transformed/core-1.12.0/res/values-v16/values-v16.xml",
+                    "source": "/Users/sulimangzllal/.gradle/caches/8.13/transforms/628b3d9f5e18cd6c52f298dd58625958/transformed/core-1.12.0/res/values-v16/values-v16.xml",
                     "from": {
                         "startLines": "2",
                         "startColumns": "4",

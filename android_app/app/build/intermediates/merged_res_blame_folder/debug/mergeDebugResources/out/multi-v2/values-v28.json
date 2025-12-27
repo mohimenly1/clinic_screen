@@ -4,26 +4,7 @@
             "outputFile": "com.clinic.screen.app-mergeDebugResources-51:/values-v28/values-v28.xml",
             "map": [
                 {
-                    "source": "/Users/sulimangzllal/.gradle/caches/8.11.1/transforms/0b37b9eace45cf7e79d5723afd78e77a/transformed/appcompat-1.6.1/res/values-v28/values-v28.xml",
-                    "from": {
-                        "startLines": "2,3,4,8",
-                        "startColumns": "4,4,4,4",
-                        "startOffsets": "55,130,217,397",
-                        "endLines": "2,3,7,11",
-                        "endColumns": "74,86,12,12",
-                        "endOffsets": "125,212,392,584"
-                    },
-                    "to": {
-                        "startLines": "14,15,16,20",
-                        "startColumns": "4,4,4,4",
-                        "startOffsets": "1142,1217,1304,1484",
-                        "endLines": "14,15,19,23",
-                        "endColumns": "74,86,12,12",
-                        "endOffsets": "1212,1299,1479,1671"
-                    }
-                },
-                {
-                    "source": "/Users/sulimangzllal/.gradle/caches/8.11.1/transforms/7a8aed03ff8a04e691ad5883490fe2f1/transformed/material-1.11.0/res/values-v28/values-v28.xml",
+                    "source": "/Users/sulimangzllal/.gradle/caches/8.13/transforms/faa3a4bb2389cb8dac0a640446dc0bf9/transformed/material-1.11.0/res/values-v28/values-v28.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9,10,11,12,13,14",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4",
@@ -39,6 +20,25 @@
                         "endLines": "2,3,4,5,6,7,8,9,10,11,12,13,27",
                         "endColumns": "97,95,94,97,87,87,87,87,86,86,86,86,10",
                         "endOffsets": "148,244,339,437,525,613,701,789,876,963,1050,1137,1958"
+                    }
+                },
+                {
+                    "source": "/Users/sulimangzllal/.gradle/caches/8.13/transforms/c972fd1de642ac9fe77152cbedc09a61/transformed/appcompat-1.6.1/res/values-v28/values-v28.xml",
+                    "from": {
+                        "startLines": "2,3,4,8",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "55,130,217,397",
+                        "endLines": "2,3,7,11",
+                        "endColumns": "74,86,12,12",
+                        "endOffsets": "125,212,392,584"
+                    },
+                    "to": {
+                        "startLines": "14,15,16,20",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "1142,1217,1304,1484",
+                        "endLines": "14,15,19,23",
+                        "endColumns": "74,86,12,12",
+                        "endOffsets": "1212,1299,1479,1671"
                     }
                 }
             ]

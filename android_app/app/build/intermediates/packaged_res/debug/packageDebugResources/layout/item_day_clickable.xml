@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/dayCard"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp"
+    app:cardBackgroundColor="#673AB7">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:minWidth="100dp">
+
+        <!-- Calendar Icon -->
+        <ImageView
+            android:id="@+id/calendarIcon"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@android:drawable/ic_menu_my_calendar"
+            android:tint="#FFFFFF" />
+
+        <!-- Day Label -->
+        <TextView
+            android:id="@+id/dayLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="الأحد"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif"
+            android:gravity="center" />
+
+        <!-- Schedules Count -->
+        <TextView
+            android:id="@+id/schedulesCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="(3)"
+            android:textColor="#E0E0E0"
+            android:textSize="12sp"
+            android:fontFamily="sans-serif"
+            android:gravity="center" />
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>
+

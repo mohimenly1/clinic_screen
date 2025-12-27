@@ -18,7 +18,9 @@
         android:id="@+id/videoView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone" />
+        android:visibility="gone"
+        app:resize_mode="fill"
+        app:use_controller="false" />
 
     <!-- Broadcast Overlay -->
     <FrameLayout
@@ -30,7 +32,9 @@
         <androidx.media3.ui.PlayerView
             android:id="@+id/broadcastVideoView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            app:resize_mode="fill"
+            app:use_controller="false" />
 
         <ImageView
             android:id="@+id/broadcastImageView"

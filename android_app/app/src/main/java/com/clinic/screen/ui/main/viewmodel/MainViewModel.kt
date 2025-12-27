@@ -42,6 +42,9 @@ class MainViewModel : ViewModel() {
     private val _screenResolution = MutableStateFlow<String?>(null)
     val screenResolution: StateFlow<String?> = _screenResolution.asStateFlow()
     
+    private val _departments = MutableStateFlow<List<Department>>(emptyList())
+    val departments: StateFlow<List<Department>> = _departments.asStateFlow()
+    
     /**
      * Set screen orientation
      */
@@ -76,6 +79,14 @@ class MainViewModel : ViewModel() {
                     _screenData.value = screenResponse
                     _mediaItems.value = screenResponse.mediaItems
                     _backgroundAudioUrl.value = screenResponse.backgroundAudioUrl
+                    
+                    // Load departments from screen response or fetch separately
+                    screenResponse.departments?.let {
+                        _departments.value = it
+                    } ?: run {
+                        // If not in response, fetch departments separately
+                        loadDepartments()
+                    }
                     
                     // Check if there's an active broadcast
                     screenResponse.broadcastItem?.let {
@@ -155,6 +166,25 @@ class MainViewModel : ViewModel() {
         val index = _currentMediaIndex.value
         val items = _mediaItems.value
         return if (index < items.size) items[index] else null
+    }
+    
+    /**
+     * Load departments from API
+     */
+    fun loadDepartments() {
+        viewModelScope.launch {
+            try {
+                val response = apiService.getDepartments()
+                if (response.isSuccessful && response.body()?.success == true) {
+                    _departments.value = response.body()!!.data
+                    Log.d(TAG, "Departments loaded: ${_departments.value.size} departments")
+                } else {
+                    Log.w(TAG, "Failed to load departments: ${response.message()}")
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error loading departments", e)
+            }
+        }
     }
     
     /**

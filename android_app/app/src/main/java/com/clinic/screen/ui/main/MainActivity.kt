@@ -10,14 +10,22 @@ import androidx.lifecycle.lifecycleScope
 import com.clinic.screen.databinding.ActivityMainBinding
 import com.clinic.screen.service.PusherService
 import com.clinic.screen.ui.main.viewmodel.MainViewModel
+import com.clinic.screen.ui.inquiry.InquiryFragment
+import com.clinic.screen.util.VoiceRecognitionHelper
+import com.clinic.screen.util.VoiceCommandProcessor
+import android.widget.Toast
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private val viewModel: MainViewModel by viewModels()
+    
+    var voiceRecognitionHelper: VoiceRecognitionHelper? = null
     private lateinit var pusherService: PusherService
     private var screenCode: String = ""
+    private var isListening = false
+    private var listeningAnimator: android.animation.ObjectAnimator? = null
 
     companion object {
         const val EXTRA_SCREEN_CODE = "SCREEN_CODE"
@@ -41,6 +49,10 @@ class MainActivity : AppCompatActivity() {
 
         // Setup Full Screen Kiosk Mode
         setupFullScreen()
+        
+        // Set default orientation to portrait until API response loads
+        // This will be updated by applyScreenOrientation() when screen data is received
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -83,8 +95,8 @@ class MainActivity : AppCompatActivity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         // Orientation will be set dynamically based on API response
-        // Default to landscape until screen data is loaded
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        // Only set default portrait on first call (onCreate), not on resume
+        // This prevents overriding the orientation set from API
     }
 
     private fun applyScreenOrientation(orientation: String) {
@@ -94,8 +106,8 @@ class MainActivity : AppCompatActivity() {
             "portrait" -> ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
             "landscape" -> ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
             else -> {
-                android.util.Log.w("MainActivity", "Unknown orientation: '$orientation', defaulting to landscape")
-                ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE // Default
+                android.util.Log.w("MainActivity", "Unknown orientation: '$orientation', defaulting to portrait")
+                ActivityInfo.SCREEN_ORIENTATION_PORTRAIT // Default
             }
         }
 
@@ -165,7 +177,7 @@ class MainActivity : AppCompatActivity() {
         android.util.Log.d("MainActivity", "Updating screen content: ${screenResponse.mediaItems.size} items")
         android.util.Log.d("MainActivity", "Screen data - orientation: '${screenResponse.screen.orientation}', resolution: '${screenResponse.screen.resolution}'")
 
-        // Apply screen orientation from API
+        // Apply screen orientation from API (portrait or landscape)
         val orientation = screenResponse.screen.orientation
         android.util.Log.d("MainActivity", "Received orientation from API: '$orientation'")
         applyScreenOrientation(orientation)
@@ -190,15 +202,12 @@ class MainActivity : AppCompatActivity() {
     private fun setupUI() {
         // Setup inquiry button click listener
         binding.inquiryButton.setOnClickListener {
-            // TODO: Open inquiry dialog/fragment
             android.util.Log.d("MainActivity", "Inquiry button clicked")
+            showInquiryFragment()
         }
 
-        // Setup microphone button click listener
-        binding.microphoneButton.setOnClickListener {
-            // TODO: Implement voice recognition
-            android.util.Log.d("MainActivity", "Microphone button clicked")
-        }
+        // Setup voice recognition
+        setupVoiceRecognition()
 
         // Sidebar tools are always on the left (matching web implementation)
         // No need to observe orientation changes for sidebar position
@@ -236,16 +245,265 @@ class MainActivity : AppCompatActivity() {
         setupFullScreen()
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        pusherService.disconnect()
-        viewModel.cleanup()
-    }
-
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         if (hasFocus) {
+            // Ensure full screen mode is maintained (but don't reset orientation)
             setupFullScreen()
+            // Note: Don't reset requestedOrientation here to preserve API setting
+        }
+    }
+
+    private fun showInquiryFragment() {
+        // Check if inquiry fragment is already showing
+        val existingFragment = supportFragmentManager.findFragmentByTag("InquiryFragment")
+        if (existingFragment != null) {
+            return
+        }
+
+        // Create and show inquiry fragment
+        val inquiryFragment = InquiryFragment()
+        supportFragmentManager.beginTransaction()
+            .add(android.R.id.content, inquiryFragment, "InquiryFragment")
+            .commit()
+    }
+    
+    private fun setupVoiceRecognition() {
+        try {
+            // Initialize voice recognition helper directly with Activity
+            voiceRecognitionHelper = VoiceRecognitionHelper(
+                activity = this,
+                onResult = { transcript: String ->
+                    handleVoiceCommand(transcript)
+                },
+                onError = { errorMessage: String ->
+                    android.util.Log.e("MainActivity", "Voice recognition error: $errorMessage")
+                    // Only hide if it's a critical error, otherwise keep listening
+                    // Critical errors will be handled separately
+                    Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
+                }
+            )
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "Error setting up voice recognition", e)
+            Toast.makeText(this, "خطأ في تهيئة التعرف الصوتي: ${e.message ?: "خطأ غير معروف"}", Toast.LENGTH_SHORT).show()
+        }
+        
+        binding.voiceButton.setOnClickListener {
+            startVoiceRecognition()
+        }
+    }
+    
+    private fun startVoiceRecognition() {
+        try {
+            // Toggle listening state
+            if (isListening) {
+                stopVoiceRecognition()
+                return
+            }
+            
+            if (voiceRecognitionHelper == null) {
+                // Try to initialize again if null
+                setupVoiceRecognition()
+            }
+            
+            if (voiceRecognitionHelper == null) {
+                Toast.makeText(this, "لم يتم تهيئة التعرف الصوتي. يرجى المحاولة مرة أخرى.", Toast.LENGTH_SHORT).show()
+                return
+            }
+            
+            // Start listening
+            isListening = true
+            
+            // Show listening status with visual feedback
+            showListeningState()
+            
+            // Start listening continuously
+            voiceRecognitionHelper?.startListening()
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "Error starting voice recognition", e)
+            hideListeningState()
+            Toast.makeText(this, "حدث خطأ في بدء التعرف الصوتي: ${e.message ?: "خطأ غير معروف"}", Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    private fun stopVoiceRecognition() {
+        try {
+            isListening = false
+            voiceRecognitionHelper?.stopListening()
+            hideListeningState()
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "Error stopping voice recognition", e)
+        }
+    }
+    
+    private fun showListeningState() {
+        // Show status text
+        binding.voiceStatusText.text = "المساعد الذكي يستمع الآن..."
+        binding.voiceStatusText.visibility = View.VISIBLE
+        
+        // Change button color to green (active state)
+        binding.voiceButton.setColorFilter(0xFF4CAF50.toInt(), android.graphics.PorterDuff.Mode.SRC_IN)
+        
+        // Start pulsating animation
+        startListeningAnimation()
+    }
+    
+    private fun hideListeningState() {
+        // Hide status text
+        binding.voiceStatusText.text = ""
+        binding.voiceStatusText.visibility = View.GONE
+        
+        // Reset button appearance to white
+        binding.voiceButton.setColorFilter(0xFFFFFFFF.toInt(), android.graphics.PorterDuff.Mode.SRC_IN)
+        
+        // Stop animation
+        stopListeningAnimation()
+    }
+    
+    private fun startListeningAnimation() {
+        stopListeningAnimation() // Stop any existing animation
+        
+        // Create scale animation (pulsating effect)
+        listeningAnimator = android.animation.ObjectAnimator.ofFloat(
+            binding.voiceButton,
+            "scaleX",
+            1.0f, 1.15f, 1.0f
+        ).apply {
+            duration = 1000 // 1 second per cycle
+            repeatCount = android.animation.ObjectAnimator.INFINITE
+            repeatMode = android.animation.ObjectAnimator.REVERSE
+            interpolator = android.view.animation.AccelerateDecelerateInterpolator()
+        }
+        
+        // Also animate scaleY
+        val scaleYAnimator = android.animation.ObjectAnimator.ofFloat(
+            binding.voiceButton,
+            "scaleY",
+            1.0f, 1.15f, 1.0f
+        ).apply {
+            duration = 1000
+            repeatCount = android.animation.ObjectAnimator.INFINITE
+            repeatMode = android.animation.ObjectAnimator.REVERSE
+            interpolator = android.view.animation.AccelerateDecelerateInterpolator()
+        }
+        
+        // Start both animations together
+        val animatorSet = android.animation.AnimatorSet()
+        animatorSet.playTogether(listeningAnimator, scaleYAnimator)
+        animatorSet.start()
+    }
+    
+    private fun stopListeningAnimation() {
+        listeningAnimator?.cancel()
+        listeningAnimator = null
+        binding.voiceButton.animate().cancel()
+        binding.voiceButton.scaleX = 1.0f
+        binding.voiceButton.scaleY = 1.0f
+    }
+    
+    private fun handleVoiceCommand(transcript: String) {
+        android.util.Log.d("MainActivity", "Processing voice command: $transcript")
+        
+        // Don't hide listening state - keep it active for continuous listening
+        // The user can stop it manually by pressing the button again
+        
+        val departments = viewModel.departments.value
+        if (departments.isEmpty()) {
+            Toast.makeText(this, "جاري تحميل البيانات...", Toast.LENGTH_SHORT).show()
+            viewModel.loadDepartments()
+            return
+        }
+        
+        val result = VoiceCommandProcessor.processVoiceCommand(transcript, departments)
+        
+        when (result.type) {
+            VoiceCommandProcessor.VoiceCommandType.DEPARTMENT -> {
+                result.department?.let { department ->
+                    // Always open inquiry (it will replace current fragment if exists)
+                    showInquiryFragment()
+                    // Wait a bit for fragment to be ready, then select department
+                    binding.root.postDelayed({
+                        val fragment = supportFragmentManager.findFragmentByTag("InquiryFragment") as? InquiryFragment
+                        fragment?.let {
+                            it.selectDepartment(department)
+                            Toast.makeText(
+                                this,
+                                "تم فتح قسم ${department.name}",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        } ?: run {
+                            // Retry if fragment not ready yet
+                            binding.root.postDelayed({
+                                val retryFragment = supportFragmentManager.findFragmentByTag("InquiryFragment") as? InquiryFragment
+                                retryFragment?.selectDepartment(department)
+                            }, 300)
+                        }
+                    }, 500)
+                }
+            }
+            VoiceCommandProcessor.VoiceCommandType.DOCTOR -> {
+                result.doctor?.let { doctor ->
+                    result.department?.let { department ->
+                        // Always open inquiry (it will replace current fragment if exists)
+                        showInquiryFragment()
+                        // Wait a bit for fragment to be ready, then select department and doctor
+                        binding.root.postDelayed({
+                            val fragment = supportFragmentManager.findFragmentByTag("InquiryFragment") as? InquiryFragment
+                            fragment?.let {
+                                it.selectDepartment(department)
+                                binding.root.postDelayed({
+                                    it.selectDoctor(doctor)
+                                    Toast.makeText(
+                                        this,
+                                        "تم فتح مواعيد الدكتور ${doctor.name}",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }, 300)
+                            } ?: run {
+                                // Retry if fragment not ready yet
+                                binding.root.postDelayed({
+                                    val retryFragment = supportFragmentManager.findFragmentByTag("InquiryFragment") as? InquiryFragment
+                                    retryFragment?.selectDepartment(department)
+                                    binding.root.postDelayed({
+                                        retryFragment?.selectDoctor(doctor)
+                                    }, 300)
+                                }, 300)
+                            }
+                        }, 500)
+                    }
+                }
+            }
+            VoiceCommandProcessor.VoiceCommandType.UNKNOWN -> {
+                result.errorMessage?.let { message ->
+                    Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+    
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        voiceRecognitionHelper?.handlePermissionResult(requestCode, permissions, grantResults)
+    }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        voiceRecognitionHelper?.destroy()
+        voiceRecognitionHelper = null
+        pusherService.disconnect()
+        viewModel.cleanup()
+    }
+    
+    override fun onPause() {
+        super.onPause()
+        try {
+            stopVoiceRecognition()
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "Error stopping voice recognition", e)
         }
     }
 }

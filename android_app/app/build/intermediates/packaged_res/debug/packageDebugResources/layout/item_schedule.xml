@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/scheduleCard"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="0dp"
+    android:layout_marginEnd="0dp"
+    android:layout_marginTop="4dp"
+    android:layout_marginBottom="4dp"
+    android:visibility="visible"
+    app:cardCornerRadius="10dp"
+    app:cardElevation="2dp"
+    app:cardBackgroundColor="#FFFFFF">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:minHeight="56dp"
+        android:baselineAligned="false">
+
+        <!-- Time - Fixed width to prevent wrapping -->
+        <TextView
+            android:id="@+id/timeText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:minWidth="140dp"
+            android:text="09:00 - 12:00"
+            android:textColor="#333333"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif"
+            android:singleLine="true"
+            android:ellipsize="none"
+            android:maxLines="1"
+            android:lines="1"
+            android:gravity="center_vertical|start"
+            android:includeFontPadding="false" />
+
+        <!-- Clinic Number -->
+        <TextView
+            android:id="@+id/clinicText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:background="#E3F2FD"
+            android:paddingStart="12dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="8dp"
+            android:text="101"
+            android:textColor="#1976D2"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif"
+            android:singleLine="true"
+            android:maxLines="1"
+            android:lines="1"
+            android:gravity="center"
+            android:minWidth="40dp" />
+
+        <!-- Floor -->
+        <TextView
+            android:id="@+id/floorText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:background="#F3E5F5"
+            android:paddingStart="12dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="8dp"
+            android:text="ط. 1"
+            android:textColor="#7B1FA2"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif"
+            android:singleLine="true"
+            android:maxLines="1"
+            android:lines="1"
+            android:gravity="center"
+            android:minWidth="50dp" />
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

@@ -41,7 +41,8 @@ data class ScreenResponse(
     @SerializedName("screen") val screen: Screen,
     @SerializedName("media_items") val mediaItems: List<MediaItem>,
     @SerializedName("background_audio_url") val backgroundAudioUrl: String?,
-    @SerializedName("broadcast_item") val broadcastItem: BroadcastItem?
+    @SerializedName("broadcast_item") val broadcastItem: BroadcastItem?,
+    @SerializedName("departments") val departments: List<Department>? = null
 )
 
 /**

@@ -3197,6 +3197,7 @@ drawable exo_styled_controls_speed
 drawable exo_styled_controls_subtitle_off
 drawable exo_styled_controls_subtitle_on
 drawable exo_styled_controls_vr
+drawable gradient_header
 drawable ic_arrow_back_black_24
 drawable ic_call_answer
 drawable ic_call_answer_low
@@ -3206,6 +3207,7 @@ drawable ic_call_decline
 drawable ic_call_decline_low
 drawable ic_clear_black_24
 drawable ic_clock_black_24dp
+drawable ic_doctor_placeholder
 drawable ic_keyboard_black_24dp
 drawable ic_m3_chip_check
 drawable ic_m3_chip_checked_circle
@@ -3290,6 +3292,8 @@ drawable notify_panel_notification_icon_bg
 drawable test_level_drawable
 drawable tooltip_frame_dark
 drawable tooltip_frame_light
+drawable voice_button_background
+drawable voice_status_background
 font roboto_medium_numbers
 id ALT
 id BOTTOM_END
@@ -3381,6 +3385,8 @@ id auto
 id autoComplete
 id autoCompleteToEnd
 id autoCompleteToStart
+id backButton
+id backButtonCard
 id barrier
 id baseline
 id beginOnFirstDraw
@@ -3397,6 +3403,7 @@ id broadcastOverlay
 id broadcastVideoView
 id buttonPanel
 id cache_measures
+id calendarIcon
 id callMeasure
 id cancel_action
 id cancel_button
@@ -3414,9 +3421,11 @@ id checked
 id chronometer
 id circle_center
 id clear_text
+id clinicText
 id clip_horizontal
 id clip_vertical
 id clockwise
+id closeButton
 id closest
 id collapseActionView
 id compress
@@ -3425,6 +3434,7 @@ id constraint
 id container
 id content
 id contentPanel
+id contentRecyclerView
 id contiguous
 id continuousVelocity
 id coordinator
@@ -3436,11 +3446,17 @@ id custom
 id customPanel
 id cut
 id date_picker_actions
+id dayCard
+id dayHeader
+id dayHeaderCard
+id dayLabel
 id decelerate
 id decelerateAndComplete
 id decor_content_parent
 id default_activity_button
 id deltaRelative
+id departmentCard
+id departmentName
 id dependency_ordering
 id design_bottom_sheet
 id design_menu_item_action_area
@@ -3455,6 +3471,9 @@ id disableIntraAutoTransition
 id disablePostScroll
 id disableScroll
 id disjoint
+id doctorCard
+id doctorName
+id doctorPhoto
 id dragAnticlockwise
 id dragClockwise
 id dragDown
@@ -3546,6 +3565,7 @@ id fixed_height
 id fixed_width
 id flip
 id floating
+id floorText
 id forever
 id fragment_container_view_tag
 id frost
@@ -3559,6 +3579,10 @@ id graph_wrap
 id group_divider
 id grouping
 id groups
+id headerIcon
+id headerLayout
+id headerSubtitle
+id headerTitle
 id header_title
 id hide_ime_id
 id hideable
@@ -3599,6 +3623,7 @@ id list_item
 id locale
 id ltr
 id m3_side_sheet
+id mainCard
 id marquee
 id masked
 id match_constraint
@@ -3628,7 +3653,6 @@ id mediaPlayerContainer
 id media_actions
 id media_controller_compat_view_tag
 id message
-id microphoneButton
 id middle
 id mini
 id month_grid
@@ -3738,6 +3762,10 @@ id save_non_transition_alpha
 id save_overlay_view
 id sawtooth
 id scale
+id scheduleCard
+id schedulesContainer
+id schedulesCount
+id schedulesRecyclerView
 id screen
 id screenCodeInput
 id screenCodeInputLayout
@@ -3835,6 +3863,7 @@ id textinput_prefix_text
 id textinput_suffix_text
 id texture_view
 id time
+id timeText
 id title
 id titleDividerNoCustom
 id titleText
@@ -3867,6 +3896,9 @@ id view_tree_saved_state_registry_owner
 id view_tree_view_model_store_owner
 id visible
 id visible_removing_fragment_view_tag
+id voiceButton
+id voiceRecognitionContainer
+id voiceStatusText
 id west
 id when_playing
 id withText
@@ -4013,6 +4045,7 @@ layout design_navigation_menu
 layout design_navigation_menu_item
 layout design_text_input_end_icon
 layout design_text_input_start_icon
+layout dialog_schedules
 layout exo_legacy_player_control_view
 layout exo_list_divider
 layout exo_player_control_ffwd_button
@@ -4023,9 +4056,16 @@ layout exo_styled_settings_list
 layout exo_styled_settings_list_item
 layout exo_styled_sub_settings_list_item
 layout exo_track_selection_dialog
+layout fragment_inquiry
 layout fragment_media_player
 layout ime_base_split_test_activity
 layout ime_secondary_split_test_activity
+layout item_day_clickable
+layout item_department
+layout item_doctor
+layout item_schedule
+layout item_schedule_day_header
+layout item_schedule_group
 layout m3_alert_dialog
 layout m3_alert_dialog_actions
 layout m3_alert_dialog_title

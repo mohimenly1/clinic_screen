@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Department;
+use App\Http\Resources\DepartmentResource;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\JsonResponse;
 

@@ -61,6 +61,27 @@ const navigation = computed(() => {
             permission: 'view_doctors',
         },
         {
+            name: 'الطوابق',
+            href: 'admin.floors.index',
+            icon: 'screen',
+            active: isActive('admin.floors.*'),
+            permission: 'view_screens',
+        },
+        {
+            name: 'الغرف',
+            href: 'admin.rooms.index',
+            icon: 'screen',
+            active: isActive('admin.rooms.*'),
+            permission: 'view_screens',
+        },
+        {
+            name: 'مسارات التنقل',
+            href: 'admin.navigation-paths.index',
+            icon: 'screen',
+            active: isActive('admin.navigation-paths.*'),
+            permission: 'view_screens',
+        },
+        {
             name: 'البث العام',
             href: 'admin.broadcast.index',
             icon: 'broadcast',

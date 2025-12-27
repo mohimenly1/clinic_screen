@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, watch, onUnmounted } from 'vue';
 import { initSpeechRecognition, processVoiceCommand } from '@/utils/voiceCommands';
+import InteractiveMap from '@/Components/InteractiveMap.vue';
 
 const props = defineProps({
     screen: Object,
@@ -8,6 +9,7 @@ const props = defineProps({
     departments: Array,
     backgroundAudioUrl: String,
     initialBroadcastItem: Object,
+    floors: Array,
 });
 
 const broadcastItem = ref(props.initialBroadcastItem);
@@ -59,10 +61,19 @@ const scheduleNext = () => {
 
 const notification = ref(null);
 const showInquiry = ref(false);
+const showMap = ref(false);
 const inquiryStep = ref('departments');
 const selectedDepartment = ref(null);
 const selectedDoctor = ref(null);
 let inactivityTimer = null;
+
+const openMap = () => {
+    showMap.value = true;
+};
+
+const closeMap = () => {
+    showMap.value = false;
+};
 
 // Voice Recognition
 const isListening = ref(false);
@@ -506,7 +517,32 @@ watch(broadcastItem, (newVal, oldVal) => {
                         {{ isMuted ? 'تشغيل الصوت' : 'إيقاف الصوت' }}
                     </span>
                 </button>
+
+                <!-- زر الخريطة التفاعلية -->
+                <button
+                    @click="openMap"
+                    class="group relative bg-white/10 backdrop-blur-md hover:bg-white/20 rounded-full p-4 shadow-xl border border-white/20 transition-all duration-300 hover:scale-110"
+                    :class="{'bg-green-500/80 border-green-400': showMap}"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                    </svg>
+                    <!-- Tooltip -->
+                    <span class="absolute right-full mr-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-gray-900 text-white text-sm rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                        خريطة العيادة التفاعلية
+                    </span>
+                </button>
             </div>
+
+            <!-- الخريطة التفاعلية -->
+            <transition name="fade">
+                <InteractiveMap
+                    v-if="showMap"
+                    :screen-code="screen.screen_code"
+                    :floors="props.floors || []"
+                    @close="closeMap"
+                />
+            </transition>
 
             <!-- نافذة الاستعلامات - تصميم عصري -->
             <transition name="modal">

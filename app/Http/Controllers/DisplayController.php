@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Department;
+use App\Models\Floor;
 use App\Models\MediaItem;
 use App\Models\Playlist;
 use App\Models\Screen;
@@ -56,17 +57,49 @@ class DisplayController extends Controller
                 ];
             }
         }
+
+        // Load floors with rooms for navigation map
+        $floors = Floor::with(['rooms' => function($query) {
+            $query->where('is_active', true)->orderBy('room_number');
+        }])
+            ->orderBy('display_order')
+            ->orderBy('floor_number')
+            ->get()
+            ->map(function($floor) {
+                return [
+                    'id' => $floor->id,
+                    'name' => $floor->name,
+                    'floor_number' => $floor->floor_number ?? 0,
+                    'map_image_url' => $floor->map_image_url,
+                    'description' => $floor->description,
+                    'rooms' => $floor->rooms->map(function($room) {
+                        return [
+                            'id' => $room->id,
+                            'name' => $room->name,
+                            'room_number' => $room->room_number,
+                            'room_type' => $room->room_type,
+                            'map_x' => $room->map_x,
+                            'map_y' => $room->map_y,
+                            'color' => $room->color ?? $room->getColorAttribute(),
+                            'icon' => $room->icon ?? $room->getIconAttribute(),
+                            'description' => $room->description,
+                        ];
+                    }),
+                ];
+            });
+
         return Inertia::render('Display/Show', [
             'screen' => [
                 'name' => $screen->name,
                 'orientation' => $screen->orientation,
                 'resolution' => $screen->resolution,
-                'screen_code' => $screen->screen_code, // **تحديث هنا**
+                'screen_code' => $screen->screen_code,
             ],
             'mediaItems' => $formattedMedia,
             'departments' => $departments,
             'backgroundAudioUrl' => $backgroundAudioUrl,
             'initialBroadcastItem' => $initialBroadcastItem,
+            'floors' => $floors,
         ]);
     }
 }

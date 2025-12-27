@@ -3,8 +3,11 @@
 // 1. استيراد الـ Controllers
 use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\DoctorController;
+use App\Http\Controllers\Admin\FloorController;
 use App\Http\Controllers\Admin\MediaItemController;
+use App\Http\Controllers\Admin\NavigationPathController;
 use App\Http\Controllers\Admin\PlaylistController;
+use App\Http\Controllers\Admin\RoomController;
 use App\Http\Controllers\Admin\ScreenController;
 use App\Http\Controllers\DisplayController;
 use App\Http\Controllers\ProfileController;
@@ -59,6 +62,9 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::resource('playlists', PlaylistController::class);
     Route::resource('departments', DepartmentController::class);
     Route::resource('doctors', DoctorController::class);
+    Route::resource('floors', FloorController::class);
+    Route::resource('rooms', RoomController::class);
+    Route::resource('navigation-paths', NavigationPathController::class);
 
     Route::post('doctors/{doctor}/schedules', [DoctorController::class, 'storeSchedule'])->name('doctors.schedules.store');
     Route::delete('schedules/{schedule}', [DoctorController::class, 'destroySchedule'])->name('schedules.destroy');

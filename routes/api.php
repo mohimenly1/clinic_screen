@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\ScreenController;
 use App\Http\Controllers\Api\DepartmentController;
 use App\Http\Controllers\Api\MediaController;
 use App\Http\Controllers\Api\BroadcastController;
+use App\Http\Controllers\Api\NavigationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,5 +32,12 @@ Route::prefix('v1')->group(function () {
     
     // Get broadcast status
     Route::get('/broadcast/status', [BroadcastController::class, 'status'])->name('api.broadcast.status');
+    
+    // Navigation endpoints
+    Route::get('/navigation/floors', [NavigationController::class, 'floors'])->name('api.navigation.floors');
+    Route::get('/navigation/floors/{id}', [NavigationController::class, 'floor'])->name('api.navigation.floor');
+    Route::get('/navigation/rooms/{id}', [NavigationController::class, 'room'])->name('api.navigation.room');
+    Route::get('/navigation/rooms/search', [NavigationController::class, 'searchRooms'])->name('api.navigation.search');
+    Route::get('/navigation/path', [NavigationController::class, 'getPath'])->name('api.navigation.path');
 });
 

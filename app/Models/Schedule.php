@@ -12,6 +12,7 @@ class Schedule extends Model
 
     protected $fillable = [
         'doctor_id',
+        'room_id',
         'day_of_week',
         'start_time',
         'end_time',
@@ -25,5 +26,13 @@ class Schedule extends Model
     public function doctor(): BelongsTo
     {
         return $this->belongsTo(Doctor::class);
+    }
+
+    /**
+     * الغرفة المرتبطة بالموعد (اختياري)
+     */
+    public function room(): BelongsTo
+    {
+        return $this->belongsTo(Room::class);
     }
 }

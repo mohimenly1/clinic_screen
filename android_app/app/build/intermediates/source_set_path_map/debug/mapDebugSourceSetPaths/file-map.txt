@@ -1,0 +1,56 @@
+com.clinic.screen.app-appcompat-1.6.1-0 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/0b37b9eace45cf7e79d5723afd78e77a/transformed/appcompat-1.6.1/res
+com.clinic.screen.app-emoji2-views-helper-1.2.0-1 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/13d91df0584660366ec70134e42d30a0/transformed/emoji2-views-helper-1.2.0/res
+com.clinic.screen.app-lifecycle-livedata-2.7.0-2 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/13eb8e2bc1d43e97c997fcfaffa93e58/transformed/lifecycle-livedata-2.7.0/res
+com.clinic.screen.app-fragment-ktx-1.6.2-3 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/182e4c8c517407573094c29d815ce5c4/transformed/fragment-ktx-1.6.2/res
+com.clinic.screen.app-lifecycle-viewmodel-savedstate-2.7.0-4 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/18e4669662c873472a2703908847fe3f/transformed/lifecycle-viewmodel-savedstate-2.7.0/res
+com.clinic.screen.app-navigation-runtime-ktx-2.7.6-5 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/1e3fbfe828540b013399ddd8de4c82bc/transformed/navigation-runtime-ktx-2.7.6/res
+com.clinic.screen.app-slidingpanelayout-1.2.0-6 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/29d38349bd0379b4359e5aae84983c09/transformed/slidingpanelayout-1.2.0/res
+com.clinic.screen.app-core-runtime-2.2.0-7 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/2b225559330acb13823a49f219f2a532/transformed/core-runtime-2.2.0/res
+com.clinic.screen.app-navigation-runtime-2.7.6-8 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/2ed3524222341d90d7b6f4aedd68fedf/transformed/navigation-runtime-2.7.6/res
+com.clinic.screen.app-appcompat-resources-1.6.1-9 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/3032cc005fea4fc545b7bfe8e8eb7865/transformed/appcompat-resources-1.6.1/res
+com.clinic.screen.app-activity-1.8.0-10 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/334d2bcd04ea1d0c4ebc7d10ed97b408/transformed/activity-1.8.0/res
+com.clinic.screen.app-core-1.12.0-11 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/38c22a3e2e2ed8547423e13bdba73ada/transformed/core-1.12.0/res
+com.clinic.screen.app-navigation-ui-2.7.6-12 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/3b49e02ade01698dab20220b051f3dda/transformed/navigation-ui-2.7.6/res
+com.clinic.screen.app-media3-ui-1.2.0-13 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/3d08e296f9c63548814fd491c6bc62e6/transformed/media3-ui-1.2.0/res
+com.clinic.screen.app-emoji2-1.2.0-14 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/4182f43019e8dbdf28cc216339a09760/transformed/emoji2-1.2.0/res
+com.clinic.screen.app-navigation-fragment-ktx-2.7.6-15 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/467c389f3cd5b0258749779fae484e0b/transformed/navigation-fragment-ktx-2.7.6/res
+com.clinic.screen.app-media-1.6.0-16 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/4aa622bfbf7a893271c5fad550cb1752/transformed/media-1.6.0/res
+com.clinic.screen.app-annotation-experimental-1.3.1-17 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/533bea8ca0fff014773aeaa40d7ecfbb/transformed/annotation-experimental-1.3.1/res
+com.clinic.screen.app-activity-ktx-1.8.0-18 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/57b2f1a03d67a7a444ae542e6b53fb9f/transformed/activity-ktx-1.8.0/res
+com.clinic.screen.app-lifecycle-runtime-2.7.0-19 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/5a50d8c74b75fdab1c7681e71aaeb33f/transformed/lifecycle-runtime-2.7.0/res
+com.clinic.screen.app-navigation-common-ktx-2.7.6-20 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/5ba24fffd082cbdaffda9fbc0cc42bcd/transformed/navigation-common-ktx-2.7.6/res
+com.clinic.screen.app-lifecycle-livedata-core-2.7.0-21 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/5dbd99d6f7259aece8c964fc2cf3cf90/transformed/lifecycle-livedata-core-2.7.0/res
+com.clinic.screen.app-lifecycle-runtime-ktx-2.7.0-22 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/5f73c1e95b39d22a389ecdf48ad8ac27/transformed/lifecycle-runtime-ktx-2.7.0/res
+com.clinic.screen.app-fragment-1.6.2-23 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/5ffe4f8b52cb4f107b7ffb45a84511e5/transformed/fragment-1.6.2/res
+com.clinic.screen.app-core-ktx-1.12.0-24 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/721f493b6a76ee80f70f7b0ef1a6874b/transformed/core-ktx-1.12.0/res
+com.clinic.screen.app-material-1.11.0-25 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/7a8aed03ff8a04e691ad5883490fe2f1/transformed/material-1.11.0/res
+com.clinic.screen.app-lifecycle-viewmodel-2.7.0-26 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/90e8af8eb1dcc59fff7419ff020c5664/transformed/lifecycle-viewmodel-2.7.0/res
+com.clinic.screen.app-drawerlayout-1.1.1-27 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/9273299446baf61fdc0edc0cd818076c/transformed/drawerlayout-1.1.1/res
+com.clinic.screen.app-viewpager2-1.0.0-28 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/94f96c04f6d23940f7300526a3e51018/transformed/viewpager2-1.0.0/res
+com.clinic.screen.app-navigation-ui-ktx-2.7.6-29 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/9819f81622fd3f76244445b649a41d29/transformed/navigation-ui-ktx-2.7.6/res
+com.clinic.screen.app-recyclerview-1.3.0-30 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/9b339cee3163de002df28fd840bf927e/transformed/recyclerview-1.3.0/res
+com.clinic.screen.app-lifecycle-viewmodel-ktx-2.7.0-31 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/9c41a0ab5f7d0ce79d8bd2b6a7820bb6/transformed/lifecycle-viewmodel-ktx-2.7.0/res
+com.clinic.screen.app-constraintlayout-2.1.4-32 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/a0a2ffd931522713ee6df246db083c47/transformed/constraintlayout-2.1.4/res
+com.clinic.screen.app-lifecycle-process-2.7.0-33 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/acac05c0f0873ec78396298833d39d25/transformed/lifecycle-process-2.7.0/res
+com.clinic.screen.app-customview-poolingcontainer-1.0.0-34 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/aeec5ed000e266e27741655c8e63f8ac/transformed/customview-poolingcontainer-1.0.0/res
+com.clinic.screen.app-profileinstaller-1.3.0-35 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/b1e30af28727ae9226650e987d867588/transformed/profileinstaller-1.3.0/res
+com.clinic.screen.app-savedstate-ktx-1.2.1-36 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/b4e228d63d934a59b282eee9010cdf36/transformed/savedstate-ktx-1.2.1/res
+com.clinic.screen.app-window-1.0.0-37 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/bc0dee807da901b0e09a795b61127239/transformed/window-1.0.0/res
+com.clinic.screen.app-savedstate-1.2.1-38 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/c1b7db82679b0bdc3ef97ef37e179796/transformed/savedstate-1.2.1/res
+com.clinic.screen.app-glide-4.16.0-39 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/c21b7c0af691a804cfd2cc9596a53adb/transformed/glide-4.16.0/res
+com.clinic.screen.app-cardview-1.0.0-40 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/cc47249d9c87868f9ca1b3a082c67965/transformed/cardview-1.0.0/res
+com.clinic.screen.app-media3-exoplayer-1.2.0-41 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/cd0a4b21a0546f74fc27ce793be28ed4/transformed/media3-exoplayer-1.2.0/res
+com.clinic.screen.app-transition-1.4.1-42 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/cee02025967585c526a72828fe429b17/transformed/transition-1.4.1/res
+com.clinic.screen.app-startup-runtime-1.1.1-43 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/db5d26ca0b1a96b406bd93ec1a48f230/transformed/startup-runtime-1.1.1/res
+com.clinic.screen.app-lifecycle-livedata-ktx-2.7.0-44 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/ed88d9b0fb45ce49f55c6f40c47ea80f/transformed/lifecycle-livedata-ktx-2.7.0/res
+com.clinic.screen.app-coordinatorlayout-1.1.0-45 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/ef97363a93daa5514753a42ac2cbedd2/transformed/coordinatorlayout-1.1.0/res
+com.clinic.screen.app-lifecycle-livedata-core-ktx-2.7.0-46 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/f157ee69652a355590ff6c156e13d4b1/transformed/lifecycle-livedata-core-ktx-2.7.0/res
+com.clinic.screen.app-navigation-fragment-2.7.6-47 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/f67cc8165f3ec3e18fee23d03ea67c9b/transformed/navigation-fragment-2.7.6/res
+com.clinic.screen.app-navigation-common-2.7.6-48 /Users/sulimangzllal/.gradle/caches/8.11.1/transforms/fe17dd1a1c60ddb2dd3a7bc9d7371a7e/transformed/navigation-common-2.7.6/res
+com.clinic.screen.app-pngs-49 /Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/build/generated/res/pngs/debug
+com.clinic.screen.app-resValues-50 /Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/build/generated/res/resValues/debug
+com.clinic.screen.app-packageDebugResources-51 /Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/build/intermediates/incremental/debug/packageDebugResources/merged.dir
+com.clinic.screen.app-packageDebugResources-52 /Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/build/intermediates/incremental/debug/packageDebugResources/stripped.dir
+com.clinic.screen.app-debug-53 /Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/build/intermediates/merged_res/debug/mergeDebugResources
+com.clinic.screen.app-debug-54 /Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/debug/res
+com.clinic.screen.app-main-55 /Users/sulimangzllal/Development/clinic screen/clink_screen/android_app/app/src/main/res

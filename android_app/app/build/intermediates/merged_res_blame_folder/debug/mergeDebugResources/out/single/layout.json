@@ -1,0 +1,18 @@
+[
+    {
+        "merged": "/Users/sulimangzllal/.gradle/daemon/8.11.1/com.clinic.screen.app-mergeDebugResources-52:/layout/activity_setup.xml",
+        "source": "/Users/sulimangzllal/.gradle/daemon/8.11.1/com.clinic.screen.app-main-55:/layout/activity_setup.xml"
+    },
+    {
+        "merged": "/Users/sulimangzllal/.gradle/daemon/8.11.1/com.clinic.screen.app-mergeDebugResources-52:/layout/activity_main.xml",
+        "source": "/Users/sulimangzllal/.gradle/daemon/8.11.1/com.clinic.screen.app-main-55:/layout/activity_main.xml"
+    },
+    {
+        "merged": "/Users/sulimangzllal/.gradle/daemon/8.11.1/com.clinic.screen.app-mergeDebugResources-52:/layout/fragment_media_player.xml",
+        "source": "/Users/sulimangzllal/.gradle/daemon/8.11.1/com.clinic.screen.app-main-55:/layout/fragment_media_player.xml"
+    },
+    {
+        "merged": "com.clinic.screen.app-mergeDebugResources-52:/layout/activity_main.xml",
+        "source": "com.clinic.screen.app-main-55:/layout/activity_main.xml"
+    }
+]

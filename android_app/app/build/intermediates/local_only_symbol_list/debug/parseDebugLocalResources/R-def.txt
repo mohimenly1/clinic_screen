@@ -1,0 +1,33 @@
+R_DEF: Internal format may change without notice
+local
+color black
+color purple_200
+color purple_500
+color purple_700
+color teal_200
+color teal_700
+color white
+id audioControlButton
+id broadcastImageView
+id broadcastOverlay
+id broadcastVideoView
+id imageView
+id inquiryButton
+id instructionText
+id mediaPlayerContainer
+id microphoneButton
+id saveButton
+id screenCodeInput
+id screenCodeInputLayout
+id sidebarToolsContainer
+id titleText
+id videoView
+layout activity_main
+layout activity_setup
+layout fragment_media_player
+string app_name
+string error_loading
+string inquiry
+string loading
+style Theme.ClinicScreen
+style Theme.ClinicScreen.FullScreen

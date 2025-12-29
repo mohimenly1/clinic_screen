@@ -58,9 +58,13 @@ class DisplayController extends Controller
             }
         }
 
-        // Load floors with rooms for navigation map
+        // Load floors with rooms and their images for AR navigation
         $floors = Floor::with(['rooms' => function($query) {
-            $query->where('is_active', true)->orderBy('room_number');
+            $query->where('is_active', true)
+                ->with(['images' => function($imgQuery) {
+                    $imgQuery->where('is_active', true)->orderBy('display_order');
+                }])
+                ->orderBy('room_number');
         }])
             ->orderBy('display_order')
             ->orderBy('floor_number')
@@ -83,6 +87,15 @@ class DisplayController extends Controller
                             'color' => $room->color ?? $room->getColorAttribute(),
                             'icon' => $room->icon ?? $room->getIconAttribute(),
                             'description' => $room->description,
+                            'images' => $room->images->map(function($image) {
+                                return [
+                                    'id' => $image->id,
+                                    'image_url' => Storage::url($image->image_path),
+                                    'description' => $image->description,
+                                    'ar_instructions' => $image->ar_instructions,
+                                    'display_order' => $image->display_order,
+                                ];
+                            }),
                         ];
                     }),
                 ];

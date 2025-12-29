@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\MediaItemController;
 use App\Http\Controllers\Admin\NavigationPathController;
 use App\Http\Controllers\Admin\PlaylistController;
 use App\Http\Controllers\Admin\RoomController;
+use App\Http\Controllers\Admin\RoomImageController;
 use App\Http\Controllers\Admin\ScreenController;
 use App\Http\Controllers\DisplayController;
 use App\Http\Controllers\ProfileController;
@@ -65,6 +66,15 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::resource('floors', FloorController::class);
     Route::resource('rooms', RoomController::class);
     Route::resource('navigation-paths', NavigationPathController::class);
+    
+    // Room Images Management
+    Route::get('rooms/{room}/images', [RoomImageController::class, 'index'])->name('rooms.images.index');
+    Route::get('rooms/{room}/images/create', [RoomImageController::class, 'create'])->name('rooms.images.create');
+    Route::post('rooms/{room}/images', [RoomImageController::class, 'store'])->name('rooms.images.store');
+    Route::get('rooms/{room}/images/{image}/edit', [RoomImageController::class, 'edit'])->name('rooms.images.edit');
+    Route::put('rooms/{room}/images/{image}', [RoomImageController::class, 'update'])->name('rooms.images.update');
+    Route::delete('rooms/{room}/images/{image}', [RoomImageController::class, 'destroy'])->name('rooms.images.destroy');
+    Route::post('rooms/{room}/images/reorder', [RoomImageController::class, 'reorder'])->name('rooms.images.reorder');
 
     Route::post('doctors/{doctor}/schedules', [DoctorController::class, 'storeSchedule'])->name('doctors.schedules.store');
     Route::delete('schedules/{schedule}', [DoctorController::class, 'destroySchedule'])->name('schedules.destroy');

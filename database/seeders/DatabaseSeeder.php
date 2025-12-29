@@ -17,27 +17,28 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
 
         // إنشاء مستخدم مدير للنظام
-        User::factory()->create([
-            'name' => 'مدير النظام',
-            'username' => 'mohimen1',
-            'email' => 'mohimen1@example.com',
-            'password' => Hash::make('password'), // كلمة المرور هي 'password'
-            'is_admin' => true, // تحديد المستخدم كمدير
-        ]);
+        // User::factory()->create([
+        //     'name' => 'مدير النظام',
+        //     'username' => 'mohimen1',
+        //     'email' => 'mohimen1@example.com',
+        //     'password' => Hash::make('password'), // كلمة المرور هي 'password'
+        //     'is_admin' => true, // تحديد المستخدم كمدير
+        // ]);
 
-        // إنشاء مستخدم عادي للاختبار
-        User::factory()->create([
-            'name' => 'مستخدم تجريبي',
-            'username' => 'test_user1',
-            'email' => 'sss1@example.com',
-            'password' => Hash::make('password'),
-        ]);
+        // // إنشاء مستخدم عادي للاختبار
+        // User::factory()->create([
+        //     'name' => 'مستخدم تجريبي',
+        //     'username' => 'test_user1',
+        //     'email' => 'sss1@example.com',
+        //     'password' => Hash::make('password'),
+        // ]);
 
         // استدعاء الـ Seeders الأخرى
         $this->call([
-            PermissionsSeeder::class,
-            RolesSeeder::class,
-            DepartmentSeeder::class,
+            // PermissionsSeeder::class,
+            // RolesSeeder::class,
+            // DepartmentSeeder::class,
+            NavigationMapSeeder::class,
         ]);
     }
 }

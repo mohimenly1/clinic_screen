@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, watch, onUnmounted } from 'vue';
 import { initSpeechRecognition, processVoiceCommand } from '@/utils/voiceCommands';
-import InteractiveMap from '@/Components/InteractiveMap.vue';
+import RoomListView from '@/Components/RoomListView.vue';
 
 const props = defineProps({
     screen: Object,
@@ -534,11 +534,10 @@ watch(broadcastItem, (newVal, oldVal) => {
                 </button>
             </div>
 
-            <!-- الخريطة التفاعلية -->
+            <!-- قائمة الغرف مع الواقع المعزز -->
             <transition name="fade">
-                <InteractiveMap
+                <RoomListView
                     v-if="showMap"
-                    :screen-code="screen.screen_code"
                     :floors="props.floors || []"
                     @close="closeMap"
                 />

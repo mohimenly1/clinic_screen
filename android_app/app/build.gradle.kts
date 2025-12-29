@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -21,13 +24,74 @@ android {
         buildConfigField("String", "DEFAULT_SCREEN_CODE", "\"SCREEN001\"")
     }
 
+    // Load keystore properties if they exist
+    val keystorePropertiesFile = rootProject.file("keystore.properties")
+    val keystoreProperties = Properties()
+    var keystoreFile: java.io.File? = null
+    
+    if (keystorePropertiesFile.exists()) {
+        keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+        val keystorePath = keystoreProperties["storeFile"]?.toString() ?: ""
+        if (keystorePath.isNotEmpty()) {
+            // Try app directory first (most common location)
+            keystoreFile = file(keystorePath)
+            // Also check in root project directory as fallback
+            if (!keystoreFile.exists()) {
+                keystoreFile = rootProject.file(keystorePath)
+            }
+        }
+    }
+
+    signingConfigs {
+        if (keystorePropertiesFile.exists() && keystoreFile != null && keystoreFile.exists()) {
+            create("release") {
+                keyAlias = keystoreProperties["keyAlias"]?.toString() ?: ""
+                keyPassword = keystoreProperties["keyPassword"]?.toString() ?: ""
+                storeFile = keystoreFile
+                storePassword = keystoreProperties["storePassword"]?.toString() ?: ""
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
+            isShrinkResources = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // Apply signing config if keystore exists
+            if (keystorePropertiesFile.exists() && keystoreFile != null && keystoreFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
+        }
+        debug {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+        }
+    }
+
+    // Support for all device architectures (Universal APK)
+    splits {
+        abi {
+            isEnable = false // Set to false to create universal APK for all architectures
+            reset()
+            // include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+        }
+    }
+
+    // Packaging options
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "/META-INF/DEPENDENCIES"
+            excludes += "/META-INF/LICENSE"
+            excludes += "/META-INF/LICENSE.txt"
+            excludes += "/META-INF/license.txt"
+            excludes += "/META-INF/NOTICE"
+            excludes += "/META-INF/NOTICE.txt"
+            excludes += "/META-INF/notice.txt"
         }
     }
 

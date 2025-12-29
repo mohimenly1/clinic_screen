@@ -61,6 +61,14 @@ class Room extends Model
     }
 
     /**
+     * صور الواقع المعزز للغرفة
+     */
+    public function images(): HasMany
+    {
+        return $this->hasMany(RoomImage::class)->orderBy('display_order');
+    }
+
+    /**
      * الحصول على لون الغرفة حسب نوعها (للعرض في الخريطة)
      */
     public function getColorAttribute(): string

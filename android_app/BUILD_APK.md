@@ -113,3 +113,4 @@ adb install app/build/outputs/apk/release/app-release.apk
 4. **تحقق من الأذونات**: تأكد من أن جميع الأذونات المطلوبة موجودة في AndroidManifest.xml
 
 
+

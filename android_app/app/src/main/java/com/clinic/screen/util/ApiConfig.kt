@@ -7,7 +7,7 @@ object ApiConfig {
 
     // للـ Android Emulator:
     // const val BASE_URL = "http://10.0.2.2:8000/api/v1/"
-    const val BASE_URL = "http://192.168.86.196:8000/api/v1/"
+    const val BASE_URL = "http://10.215.159.52:8000/api/v1/"
 
     // للإنتاج (Production):
     // const val BASE_URL = "https://your-domain.com/api/v1/"

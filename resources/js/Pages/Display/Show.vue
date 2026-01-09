@@ -67,6 +67,10 @@ const selectedDepartment = ref(null);
 const selectedDoctor = ref(null);
 let inactivityTimer = null;
 
+// فقاعة الاستعلامات
+const showInquiryBubble = ref(false);
+let inquiryBubbleTimer = null;
+
 const openMap = () => {
     showMap.value = true;
 };
@@ -136,6 +140,42 @@ const resetInactivityTimer = () => {
 const openInquiry = () => {
     showInquiry.value = true;
     resetInactivityTimer();
+    // إخفاء الفقاعة عند فتح الاستعلامات
+    hideInquiryBubble();
+};
+
+// إظهار فقاعة الاستعلامات
+const showInquiryBubbleFunc = () => {
+    if (!showInquiry.value && !showMap.value) {
+        showInquiryBubble.value = true;
+        // إخفاء الفقاعة بعد 4 ثواني
+        setTimeout(() => {
+            hideInquiryBubble();
+        }, 4000);
+    }
+};
+
+// إخفاء فقاعة الاستعلامات
+const hideInquiryBubble = () => {
+    showInquiryBubble.value = false;
+    if (inquiryBubbleTimer) {
+        clearTimeout(inquiryBubbleTimer);
+        inquiryBubbleTimer = null;
+    }
+};
+
+// بدء دورة الفقاعة
+const startInquiryBubbleCycle = () => {
+    // إظهار الفقاعة بعد 3 ثواني من تحميل الصفحة
+    inquiryBubbleTimer = setTimeout(() => {
+        showInquiryBubbleFunc();
+        // بعد إخفاء الفقاعة، إظهارها مرة أخرى كل 8 ثواني
+        inquiryBubbleTimer = setInterval(() => {
+            if (!showInquiry.value && !showMap.value) {
+                showInquiryBubbleFunc();
+            }
+        }, 8000);
+    }, 3000);
 };
 
 const closeInquiry = () => {
@@ -360,6 +400,7 @@ const stopVoiceRecognition = () => {
 
 onMounted(() => {
     startPlayer(); // بدء المشغل عند تحميل الصفحة
+    startInquiryBubbleCycle(); // بدء دورة فقاعة الاستعلامات
 
     // تهيئة Speech Recognition
     const recognition = initSpeechRecognition();
@@ -425,6 +466,11 @@ onUnmounted(() => {
     stopVoiceRecognition();
     if (speechRecognition.value) {
         speechRecognition.value.abort();
+    }
+    // تنظيف timer الفقاعة
+    hideInquiryBubble();
+    if (inquiryBubbleTimer) {
+        clearInterval(inquiryBubbleTimer);
     }
 });
 
@@ -500,47 +546,49 @@ watch(broadcastItem, (newVal, oldVal) => {
                 </button>
 
                 <!-- زر الاستعلامات - تصميم ملفت مع تأثير pulse -->
-                <button
-                    @click="openInquiry"
-                    class="group relative rounded-full p-4 shadow-2xl transition-all duration-300 hover:scale-110 inquiry-button"
-                    :class="{
-                        'bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 border-2 border-white/30': !showInquiry,
-                        'bg-gradient-to-br from-blue-500 to-purple-500 border-2 border-blue-300': showInquiry
-                    }"
-                >
-                    <!-- تأثير Pulse/Animation -->
-                    <div v-if="!showInquiry" class="absolute inset-0 rounded-full bg-gradient-to-br from-orange-400 via-red-400 to-pink-400 animate-ping opacity-75"></div>
-                    <div v-if="!showInquiry" class="absolute inset-0 rounded-full bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 animate-pulse"></div>
-                    
-                    <!-- أيقونة الاستعلامات -->
-                    <div class="relative z-10">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white drop-shadow-lg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                    </div>
-                    
-                    <!-- مربع حواري يظهر ويختفي -->
-                    <div v-if="!showInquiry" class="absolute right-full mr-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 animate-bounce-slow">
-                        <div class="relative">
-                            <!-- السهم -->
-                            <div class="absolute left-0 top-1/2 -translate-y-1/2 w-0 h-0 border-t-8 border-t-transparent border-b-8 border-b-transparent border-r-8 border-r-orange-500"></div>
-                            <!-- المربع الحواري -->
-                            <div class="bg-gradient-to-br from-orange-500 to-red-500 text-white px-4 py-2 rounded-lg shadow-xl whitespace-nowrap mr-2">
-                                <div class="flex items-center gap-2">
-                                    <svg class="h-4 w-4 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    <span class="font-bold text-sm">استفسر هنا!</span>
-                                </div>
-                            </div>
+                <div class="relative">
+                    <button
+                        @click="openInquiry"
+                        class="group relative rounded-full p-4 shadow-2xl transition-all duration-300 hover:scale-110 inquiry-button"
+                        :class="{
+                            'bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 border-2 border-white/30': !showInquiry,
+                            'bg-gradient-to-br from-blue-500 to-purple-500 border-2 border-blue-300': showInquiry
+                        }"
+                    >
+                        <!-- تأثير Pulse/Animation -->
+                        <div v-if="!showInquiry" class="absolute inset-0 rounded-full bg-gradient-to-br from-orange-400 via-red-400 to-pink-400 animate-ping opacity-75"></div>
+                        <div v-if="!showInquiry" class="absolute inset-0 rounded-full bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 animate-pulse"></div>
+                        
+                        <!-- أيقونة الاستعلامات -->
+                        <div class="relative z-10">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white drop-shadow-lg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
                         </div>
-                    </div>
-                    
-                    <!-- Tooltip العادي -->
-                    <span class="absolute right-full mr-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-gray-900 text-white text-sm rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
-                        الاستعلامات
-                    </span>
-                </button>
+                    </button>
+
+                    <!-- فقاعة سحابية تظهر تلقائياً -->
+                    <transition name="bubble">
+                        <div 
+                            v-if="showInquiryBubble && !showInquiry" 
+                            class="absolute right-full mr-3 top-1/2 -translate-y-1/2 z-50 inquiry-bubble"
+                        >
+                            <!-- الفقاعة السحابية -->
+                            <div class="relative bg-white/95 backdrop-blur-md rounded-2xl px-4 py-2.5 shadow-xl border border-white/50 bubble-cloud">
+                                <!-- النص -->
+                                <p class="text-sm text-gray-700 font-medium whitespace-nowrap text-center">
+                                    للإستعلام يمكنك الضغط هنا
+                                </p>
+                                <!-- نقاط سحابية صغيرة للزينة -->
+                                <div class="absolute -bottom-1 right-4 w-3 h-3 bg-white/95 rounded-full"></div>
+                                <div class="absolute -bottom-1 right-8 w-2 h-2 bg-white/95 rounded-full"></div>
+                                <div class="absolute -bottom-1 right-12 w-2.5 h-2.5 bg-white/95 rounded-full"></div>
+                            </div>
+                            <!-- السهم الصغير -->
+                            <div class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-0 h-0 border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-r-[8px] border-r-white/95"></div>
+                        </div>
+                    </transition>
+                </div>
 
                 <!-- زر الصوت (إذا كان هناك موسيقى خلفية) -->
                 <button
@@ -949,6 +997,83 @@ watch(broadcastItem, (newVal, oldVal) => {
 .inquiry-button {
     position: relative;
     overflow: visible;
+}
+
+/* فقاعة الاستعلامات */
+.inquiry-bubble {
+    pointer-events: none;
+}
+
+.bubble-cloud {
+    position: relative;
+    animation: float 3s ease-in-out infinite;
+}
+
+.bubble-cloud::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    right: 20px;
+    width: 12px;
+    height: 12px;
+    background: white;
+    border-radius: 50%;
+    opacity: 0.8;
+}
+
+.bubble-cloud::after {
+    content: '';
+    position: absolute;
+    top: -5px;
+    right: 30px;
+    width: 8px;
+    height: 8px;
+    background: white;
+    border-radius: 50%;
+    opacity: 0.6;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0) translateX(0);
+    }
+    50% {
+        transform: translateY(-5px) translateX(2px);
+    }
+}
+
+/* انتقال الفقاعة */
+.bubble-enter-active {
+    animation: bubbleAppear 0.5s ease-out;
+}
+
+.bubble-leave-active {
+    animation: bubbleDisappear 0.4s ease-in;
+}
+
+@keyframes bubbleAppear {
+    0% {
+        opacity: 0;
+        transform: translateY(10px) scale(0.8);
+    }
+    50% {
+        transform: translateY(-3px) scale(1.05);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes bubbleDisappear {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.8);
+    }
 }
 
 /* Custom Scrollbar */

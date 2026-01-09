@@ -114,7 +114,7 @@ onMounted(() => {
                 <div class="text-center px-4">
                     <h1 class="text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-900 mb-6 leading-tight px-4">
                         نظام إدارة
-                        <span class="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                        <span class="inline-block bg-gradient-to-r from-blue-600 via-blue-500 to-purple-600 bg-clip-text text-transparent" style="-webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
                             الشاشات الإعلانية
                         </span>
                         <br />
@@ -166,7 +166,7 @@ onMounted(() => {
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
                     <div v-for="stat in stats" :key="stat.label" class="text-center px-2">
-                        <div class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                        <div class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 via-blue-500 to-purple-600 bg-clip-text text-transparent mb-2 inline-block" style="-webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
                             {{ stat.value }}{{ stat.suffix }}
                         </div>
                         <div class="text-gray-600 font-medium text-sm md:text-base">{{ stat.label }}</div>

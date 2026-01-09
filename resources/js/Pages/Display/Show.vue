@@ -146,36 +146,33 @@ const openInquiry = () => {
 
 // إظهار فقاعة الاستعلامات
 const showInquiryBubbleFunc = () => {
-    if (!showInquiry.value && !showMap.value) {
+    if (!showInquiry.value && !showMap.value && !broadcastItem.value) {
         showInquiryBubble.value = true;
-        // إخفاء الفقاعة بعد 4 ثواني
+        // إخفاء الفقاعة بعد 5 ثواني
         setTimeout(() => {
             hideInquiryBubble();
-        }, 4000);
+        }, 5000);
     }
 };
 
 // إخفاء فقاعة الاستعلامات
 const hideInquiryBubble = () => {
     showInquiryBubble.value = false;
-    if (inquiryBubbleTimer) {
-        clearTimeout(inquiryBubbleTimer);
-        inquiryBubbleTimer = null;
-    }
 };
 
 // بدء دورة الفقاعة
 const startInquiryBubbleCycle = () => {
     // إظهار الفقاعة بعد 3 ثواني من تحميل الصفحة
-    inquiryBubbleTimer = setTimeout(() => {
+    setTimeout(() => {
         showInquiryBubbleFunc();
-        // بعد إخفاء الفقاعة، إظهارها مرة أخرى كل 8 ثواني
-        inquiryBubbleTimer = setInterval(() => {
-            if (!showInquiry.value && !showMap.value) {
-                showInquiryBubbleFunc();
-            }
-        }, 8000);
     }, 3000);
+    
+    // إظهار الفقاعة بشكل متكرر كل 12 ثواني
+    inquiryBubbleTimer = setInterval(() => {
+        if (!showInquiry.value && !showMap.value && !broadcastItem.value) {
+            showInquiryBubbleFunc();
+        }
+    }, 12000);
 };
 
 const closeInquiry = () => {
@@ -471,6 +468,7 @@ onUnmounted(() => {
     hideInquiryBubble();
     if (inquiryBubbleTimer) {
         clearInterval(inquiryBubbleTimer);
+        inquiryBubbleTimer = null;
     }
 });
 
@@ -567,25 +565,35 @@ watch(broadcastItem, (newVal, oldVal) => {
                         </div>
                     </button>
 
-                    <!-- فقاعة سحابية تظهر تلقائياً -->
+                    <!-- فقاعة عصرية تظهر تلقائياً داخل الشاشة -->
                     <transition name="bubble">
                         <div 
-                            v-if="showInquiryBubble && !showInquiry" 
-                            class="absolute right-full mr-3 top-1/2 -translate-y-1/2 z-50 inquiry-bubble"
+                            v-if="showInquiryBubble && !showInquiry && !showMap" 
+                            class="absolute left-4 top-1/2 -translate-y-1/2 z-50 inquiry-bubble"
+                            style="transform: translateY(-50%) translateX(0);"
                         >
-                            <!-- الفقاعة السحابية -->
-                            <div class="relative bg-white/95 backdrop-blur-md rounded-2xl px-4 py-2.5 shadow-xl border border-white/50 bubble-cloud">
+                            <!-- الفقاعة العصرية -->
+                            <div class="relative bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-3xl px-5 py-3 shadow-2xl bubble-modern">
+                                <!-- تأثير اللمعان -->
+                                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent rounded-3xl animate-shimmer"></div>
+                                
                                 <!-- النص -->
-                                <p class="text-sm text-gray-700 font-medium whitespace-nowrap text-center">
-                                    للإستعلام يمكنك الضغط هنا
-                                </p>
-                                <!-- نقاط سحابية صغيرة للزينة -->
-                                <div class="absolute -bottom-1 right-4 w-3 h-3 bg-white/95 rounded-full"></div>
-                                <div class="absolute -bottom-1 right-8 w-2 h-2 bg-white/95 rounded-full"></div>
-                                <div class="absolute -bottom-1 right-12 w-2.5 h-2.5 bg-white/95 rounded-full"></div>
+                                <div class="relative flex items-center gap-2">
+                                    <svg class="h-5 w-5 text-white animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <p class="text-sm text-white font-bold whitespace-nowrap drop-shadow-lg">
+                                        للإستعلام يمكنك الضغط هنا
+                                    </p>
+                                </div>
+                                
+                                <!-- السهم يشير للزر -->
+                                <div class="absolute right-full top-1/2 -translate-y-1/2 w-0 h-0 border-t-[10px] border-t-transparent border-b-[10px] border-b-transparent border-r-[12px] border-r-purple-500 drop-shadow-lg"></div>
+                                
+                                <!-- نقاط متوهجة للزينة -->
+                                <div class="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-ping"></div>
+                                <div class="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full"></div>
                             </div>
-                            <!-- السهم الصغير -->
-                            <div class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-0 h-0 border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-r-[8px] border-r-white/95"></div>
                         </div>
                     </transition>
                 </div>
@@ -999,80 +1007,100 @@ watch(broadcastItem, (newVal, oldVal) => {
     overflow: visible;
 }
 
-/* فقاعة الاستعلامات */
+/* فقاعة الاستعلامات العصرية */
 .inquiry-bubble {
     pointer-events: none;
 }
 
-.bubble-cloud {
+.bubble-modern {
     position: relative;
-    animation: float 3s ease-in-out infinite;
+    animation: floatModern 3s ease-in-out infinite;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
 }
 
-.bubble-cloud::before {
+.bubble-modern::before {
     content: '';
     position: absolute;
-    top: -8px;
-    right: 20px;
-    width: 12px;
-    height: 12px;
-    background: white;
-    border-radius: 50%;
-    opacity: 0.8;
-}
-
-.bubble-cloud::after {
-    content: '';
-    position: absolute;
-    top: -5px;
-    right: 30px;
-    width: 8px;
-    height: 8px;
-    background: white;
-    border-radius: 50%;
+    inset: -2px;
+    border-radius: 3rem;
+    padding: 2px;
+    background: linear-gradient(45deg, #3b82f6, #8b5cf6, #ec4899, #3b82f6);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: rotateBorder 3s linear infinite;
     opacity: 0.6;
 }
 
-@keyframes float {
+@keyframes floatModern {
     0%, 100% {
         transform: translateY(0) translateX(0);
     }
-    50% {
-        transform: translateY(-5px) translateX(2px);
+    25% {
+        transform: translateY(-4px) translateX(2px);
     }
+    50% {
+        transform: translateY(-6px) translateX(0);
+    }
+    75% {
+        transform: translateY(-4px) translateX(-2px);
+    }
+}
+
+@keyframes rotateBorder {
+    0% {
+        background-position: 0% 50%;
+    }
+    100% {
+        background-position: 200% 50%;
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+.animate-shimmer {
+    animation: shimmer 2s ease-in-out infinite;
 }
 
 /* انتقال الفقاعة */
 .bubble-enter-active {
-    animation: bubbleAppear 0.5s ease-out;
+    animation: bubbleAppearModern 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .bubble-leave-active {
-    animation: bubbleDisappear 0.4s ease-in;
+    animation: bubbleDisappearModern 0.4s ease-in;
 }
 
-@keyframes bubbleAppear {
+@keyframes bubbleAppearModern {
     0% {
         opacity: 0;
-        transform: translateY(10px) scale(0.8);
+        transform: translateX(-20px) translateY(-50%) scale(0.7);
     }
     50% {
-        transform: translateY(-3px) scale(1.05);
+        transform: translateX(5px) translateY(-50%) scale(1.05);
     }
     100% {
         opacity: 1;
-        transform: translateY(0) scale(1);
+        transform: translateX(0) translateY(-50%) scale(1);
     }
 }
 
-@keyframes bubbleDisappear {
+@keyframes bubbleDisappearModern {
     0% {
         opacity: 1;
-        transform: translateY(0) scale(1);
+        transform: translateX(0) translateY(-50%) scale(1);
     }
     100% {
         opacity: 0;
-        transform: translateY(-10px) scale(0.8);
+        transform: translateX(-20px) translateY(-50%) scale(0.7);
     }
 }
 

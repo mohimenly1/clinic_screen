@@ -37,7 +37,7 @@ Route::get('/display/{code}', [DisplayController::class, 'show'])->name('display
 Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
+        'canRegister' => false, // تعطيل التسجيل العام
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
     ]);

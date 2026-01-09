@@ -88,21 +88,13 @@ onMounted(() => {
                         >
                             لوحة التحكم
                         </Link>
-                        <template v-else>
-                            <Link
-                                :href="route('login')"
-                                class="px-4 py-2 text-gray-700 hover:text-blue-600 transition-colors font-medium"
-                            >
-                                تسجيل الدخول
-                            </Link>
-                            <Link
-                                v-if="canRegister"
-                                :href="route('register')"
-                                class="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl font-medium"
-                            >
-                                ابدأ الآن
-                            </Link>
-                        </template>
+                        <Link
+                            v-else
+                            :href="route('login')"
+                            class="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl font-medium"
+                        >
+                            تسجيل الدخول
+                        </Link>
                     </div>
                 </div>
             </div>
@@ -126,16 +118,9 @@ onMounted(() => {
                     </p>
                     <div class="flex flex-col sm:flex-row gap-4 justify-center items-center px-4">
                         <Link
-                            v-if="canRegister && !$page.props.auth?.user"
-                            :href="route('register')"
-                            class="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-lg rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all shadow-xl hover:shadow-2xl font-semibold transform hover:scale-105"
-                        >
-                            ابدأ تجربتك المجانية
-                        </Link>
-                        <Link
                             v-if="canLogin && !$page.props.auth?.user"
                             :href="route('login')"
-                            class="px-8 py-4 bg-white text-gray-900 text-lg rounded-xl hover:bg-gray-50 transition-all shadow-lg hover:shadow-xl font-semibold border-2 border-gray-200"
+                            class="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-lg rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all shadow-xl hover:shadow-2xl font-semibold transform hover:scale-105"
                         >
                             تسجيل الدخول
                         </Link>
@@ -219,7 +204,7 @@ onMounted(() => {
                             1
                         </div>
                         <h3 class="text-xl font-bold text-white mb-3">إنشاء حساب</h3>
-                        <p class="text-blue-100">سجل حسابك مجاناً وابدأ في استخدام النظام</p>
+                        <p class="text-blue-100">سجل دخولك وابدأ في استخدام النظام</p>
                     </div>
 
                     <div class="bg-white/10 backdrop-blur-md rounded-2xl p-8 text-center border border-white/20">
@@ -253,16 +238,9 @@ onMounted(() => {
                     </p>
                     <div class="flex flex-col sm:flex-row gap-4 justify-center">
                         <Link
-                            v-if="canRegister && !$page.props.auth?.user"
-                            :href="route('register')"
-                            class="px-8 py-4 bg-white text-blue-600 text-lg rounded-xl hover:bg-gray-50 transition-all shadow-xl hover:shadow-2xl font-semibold transform hover:scale-105"
-                        >
-                            ابدأ الآن مجاناً
-                        </Link>
-                        <Link
                             v-if="canLogin && !$page.props.auth?.user"
                             :href="route('login')"
-                            class="px-8 py-4 bg-white/10 backdrop-blur-md text-white text-lg rounded-xl hover:bg-white/20 transition-all border-2 border-white/30 font-semibold"
+                            class="px-8 py-4 bg-white text-blue-600 text-lg rounded-xl hover:bg-gray-50 transition-all shadow-xl hover:shadow-2xl font-semibold transform hover:scale-105"
                         >
                             تسجيل الدخول
                         </Link>
@@ -289,14 +267,9 @@ onMounted(() => {
                     <div>
                         <h4 class="text-white font-semibold mb-4">روابط سريعة</h4>
                         <ul class="space-y-2">
-                            <li v-if="canLogin">
+                            <li v-if="canLogin && !$page.props.auth?.user">
                                 <Link :href="route('login')" class="hover:text-white transition-colors">
                                     تسجيل الدخول
-                                </Link>
-                            </li>
-                            <li v-if="canRegister">
-                                <Link :href="route('register')" class="hover:text-white transition-colors">
-                                    إنشاء حساب
                                 </Link>
                             </li>
                             <li v-if="$page.props.auth?.user">

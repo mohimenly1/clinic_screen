@@ -17,36 +17,25 @@ class RegisteredUserController extends Controller
 {
     /**
      * Display the registration view.
+     * 
+     * التسجيل معطل - فقط المديرون يمكنهم إنشاء حسابات جديدة
      */
-    public function create(): Response
+    public function create(): RedirectResponse
     {
-        return Inertia::render('Auth/Register');
+        // إعادة توجيه إلى صفحة تسجيل الدخول بدلاً من السماح بالتسجيل العام
+        return redirect()->route('login')->with('message', 'التسجيل العام غير متاح. يرجى التواصل مع المدير للحصول على حساب.');
     }
 
     /**
      * Handle an incoming registration request.
+     * 
+     * التسجيل معطل - فقط المديرون يمكنهم إنشاء حسابات جديدة
      *
      * @throws \Illuminate\Validation\ValidationException
      */
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'username' => 'required|string|max:255|alpha_dash|unique:'.User::class,
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        ]);
-
-        $user = User::create([
-            'name' => $request->name,
-            'username' => $request->username,
-            'email' => null, // يمكن ترك البريد الإلكتروني كخيار اختياري
-            'password' => Hash::make($request->password),
-        ]);
-
-        event(new Registered($user));
-
-        Auth::login($user);
-
-        return redirect(route('dashboard', absolute: false));
+        // رفض أي محاولة للتسجيل العام
+        return redirect()->route('login')->with('error', 'التسجيل العام غير متاح. يرجى التواصل مع المدير للحصول على حساب.');
     }
 }

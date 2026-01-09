@@ -12,10 +12,19 @@ use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
-    Route::get('register', [RegisteredUserController::class, 'create'])
-        ->name('register');
+    // مسارات التسجيل معطلة - فقط المديرون يمكنهم إنشاء حسابات جديدة
+    // Route::get('register', [RegisteredUserController::class, 'create'])
+    //     ->name('register');
+    // Route::post('register', [RegisteredUserController::class, 'store']);
 
-    Route::post('register', [RegisteredUserController::class, 'store']);
+    // إعادة توجيه أي محاولة للوصول إلى صفحة التسجيل
+    Route::get('register', function () {
+        return redirect()->route('login')->with('message', 'التسجيل العام غير متاح. يرجى التواصل مع المدير للحصول على حساب.');
+    })->name('register');
+    
+    Route::post('register', function () {
+        return redirect()->route('login')->with('error', 'التسجيل العام غير متاح. يرجى التواصل مع المدير للحصول على حساب.');
+    });
 
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');

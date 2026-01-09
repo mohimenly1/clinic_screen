@@ -446,14 +446,29 @@ watch(broadcastItem, (newVal, oldVal) => {
     <audio ref="audioPlayer" v-if="backgroundAudioUrl" :src="backgroundAudioUrl" loop :muted="isMuted"></audio>
     <div class="fixed inset-0 bg-black w-full h-full overflow-hidden flex items-center justify-center font-sans">
         <div :style="containerStyle" class="relative">
-            <!-- مشغل الإعلانات -->
+            <!-- مشغل الإعلانات - مع إزاحة عند فتح الاستعلامات -->
             <transition name="fade">
-                <div v-if="currentItem && isVisible && !broadcastItem" :key="currentItem.id" class="absolute inset-0">
+                <div 
+                    v-if="currentItem && isVisible && !broadcastItem" 
+                    :key="currentItem.id" 
+                    class="absolute inset-0 transition-all duration-500 ease-in-out"
+                    :class="{
+                        'translate-x-[-20%] scale-90 opacity-60': showInquiry,
+                        'translate-x-0 scale-100 opacity-100': !showInquiry
+                    }"
+                >
                     <img v-if="currentItem.type === 'image'" :src="currentItem.url" class="w-full h-full object-cover"/>
                     <video v-else-if="currentItem.type === 'video'" :src="currentItem.url" class="w-full h-full object-cover" autoplay muted playsinline @ended="nextItem"></video>
                 </div>
             </transition>
-            <div v-if="!currentItem && !showInquiry && !broadcastItem" class="w-full h-full flex items-center justify-center text-white text-2xl">
+            <div 
+                v-if="!currentItem && !showInquiry && !broadcastItem" 
+                class="w-full h-full flex items-center justify-center text-white text-2xl transition-all duration-500 ease-in-out"
+                :class="{
+                    'translate-x-[-20%] scale-90 opacity-60': showInquiry,
+                    'translate-x-0 scale-100 opacity-100': !showInquiry
+                }"
+            >
                 لا يوجد محتوى لعرضه.
             </div>
             <transition name="fade">
@@ -484,17 +499,45 @@ watch(broadcastItem, (newVal, oldVal) => {
                     </span>
                 </button>
 
-                <!-- زر الاستعلامات -->
+                <!-- زر الاستعلامات - تصميم ملفت مع تأثير pulse -->
                 <button
                     @click="openInquiry"
-                    class="group relative bg-white/10 backdrop-blur-md hover:bg-white/20 rounded-full p-4 shadow-xl border border-white/20 transition-all duration-300 hover:scale-110"
-                    :class="{'bg-blue-500/80 border-blue-400': showInquiry}"
+                    class="group relative rounded-full p-4 shadow-2xl transition-all duration-300 hover:scale-110 inquiry-button"
+                    :class="{
+                        'bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 border-2 border-white/30': !showInquiry,
+                        'bg-gradient-to-br from-blue-500 to-purple-500 border-2 border-blue-300': showInquiry
+                    }"
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <!-- Tooltip -->
-                    <span class="absolute right-full mr-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-gray-900 text-white text-sm rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                    <!-- تأثير Pulse/Animation -->
+                    <div v-if="!showInquiry" class="absolute inset-0 rounded-full bg-gradient-to-br from-orange-400 via-red-400 to-pink-400 animate-ping opacity-75"></div>
+                    <div v-if="!showInquiry" class="absolute inset-0 rounded-full bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 animate-pulse"></div>
+                    
+                    <!-- أيقونة الاستعلامات -->
+                    <div class="relative z-10">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white drop-shadow-lg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    
+                    <!-- مربع حواري يظهر ويختفي -->
+                    <div v-if="!showInquiry" class="absolute right-full mr-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 animate-bounce-slow">
+                        <div class="relative">
+                            <!-- السهم -->
+                            <div class="absolute left-0 top-1/2 -translate-y-1/2 w-0 h-0 border-t-8 border-t-transparent border-b-8 border-b-transparent border-r-8 border-r-orange-500"></div>
+                            <!-- المربع الحواري -->
+                            <div class="bg-gradient-to-br from-orange-500 to-red-500 text-white px-4 py-2 rounded-lg shadow-xl whitespace-nowrap mr-2">
+                                <div class="flex items-center gap-2">
+                                    <svg class="h-4 w-4 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <span class="font-bold text-sm">استفسر هنا!</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tooltip العادي -->
+                    <span class="absolute right-full mr-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-gray-900 text-white text-sm rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
                         الاستعلامات
                     </span>
                 </button>
@@ -543,14 +586,14 @@ watch(broadcastItem, (newVal, oldVal) => {
                 />
             </transition>
 
-            <!-- نافذة الاستعلامات - تصميم عصري -->
+            <!-- نافذة الاستعلامات - تصميم عصري مع موضع في منتصف الشاشة -->
             <transition name="modal">
                 <div v-if="showInquiry && !broadcastItem" class="absolute inset-0 z-40 flex items-center justify-center p-4">
                     <!-- Overlay -->
                     <div @click="resetInactivityTimer" class="absolute inset-0 bg-gradient-to-br from-black/60 via-black/70 to-black/80 backdrop-blur-sm"></div>
 
-                    <!-- Modal Content -->
-                    <div :style="containerStyle" class="relative w-full max-w-6xl bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 rounded-3xl shadow-2xl overflow-hidden border border-white/20 backdrop-blur-xl">
+                    <!-- Modal Content - موضع في منتصف الشاشة (أسفل قليلاً) -->
+                    <div class="relative w-full max-w-6xl bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 rounded-3xl shadow-2xl overflow-hidden border border-white/20 backdrop-blur-xl transform translate-y-8">
                         <!-- Header Bar -->
                         <div class="relative bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 p-6 flex items-center justify-between shadow-lg">
                             <div class="flex items-center gap-4">
@@ -580,7 +623,7 @@ watch(broadcastItem, (newVal, oldVal) => {
                         </div>
 
                         <!-- Content Area -->
-                        <div class="flex-1 overflow-y-auto p-6 bg-white/40 backdrop-blur-sm min-h-0">
+                        <div class="flex-1 overflow-y-auto p-6 bg-white/40 backdrop-blur-sm min-h-0 max-h-[calc(100vh-250px)]">
                             <!-- Departments View -->
                             <div v-if="inquiryStep === 'departments'" class="space-y-6">
                                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -875,18 +918,37 @@ watch(broadcastItem, (newVal, oldVal) => {
 
 /* Modal Animation */
 .modal-enter-active {
-    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .modal-leave-active {
-    transition: all 0.25s ease-in;
+    transition: all 0.3s ease-in;
 }
 .modal-enter-from {
     opacity: 0;
-    transform: scale(0.9) translateY(20px);
+    transform: scale(0.9) translateY(40px);
 }
 .modal-leave-to {
     opacity: 0;
-    transform: scale(0.95);
+    transform: scale(0.95) translateY(20px);
+}
+
+/* Inquiry Button Animation */
+@keyframes bounce-slow {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+.animate-bounce-slow {
+    animation: bounce-slow 2s ease-in-out infinite;
+}
+
+.inquiry-button {
+    position: relative;
+    overflow: visible;
 }
 
 /* Custom Scrollbar */

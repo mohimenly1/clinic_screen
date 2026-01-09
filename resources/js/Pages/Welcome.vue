@@ -62,10 +62,10 @@ onMounted(() => {
 
 <template>
     <Head title="نظام إدارة الشاشات الإعلانية - Clinic Screen" />
-    
+
     <div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <!-- Navigation -->
-        <nav 
+        <nav
             :class="[
                 'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
                 isScrolled ? 'bg-white/95 backdrop-blur-md shadow-lg' : 'bg-transparent'
@@ -79,7 +79,7 @@ onMounted(() => {
                         </div>
                         <span class="text-xl font-bold text-gray-900">Clinic Screen</span>
                     </div>
-                    
+
                     <div v-if="canLogin" class="flex items-center space-x-4 rtl:space-x-reverse">
                         <Link
                             v-if="$page.props.auth?.user"

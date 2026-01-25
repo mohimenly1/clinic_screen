@@ -23,3 +23,20 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
+# تحسين تشغيل الفيديو - إضافة headers مناسبة
+<IfModule mod_headers.c>
+    # السماح بـ Range requests للفيديو (للتحميل التدريجي)
+    <FilesMatch "\.(mp4|webm|ogg|mov)$">
+        Header set Accept-Ranges bytes
+        Header set Cache-Control "public, max-age=3600"
+    </FilesMatch>
+</IfModule>
+
+# تحسين MIME types للفيديو
+<IfModule mod_mime.c>
+    AddType video/mp4 .mp4
+    AddType video/webm .webm
+    AddType video/ogg .ogv
+    AddType video/quicktime .mov
+</IfModule>

@@ -76,6 +76,28 @@ const removeFromPlaylist = (itemId) => {
 const submit = () => {
     form.put(route('admin.playlists.update', props.playlist.id));
 };
+
+// معالجة أخطاء الفيديو
+const handleVideoError = (event) => {
+    console.error('Video error in preview:', event);
+    const video = event.target;
+    console.error('Video error details:', {
+        error: video.error,
+        code: video.error?.code,
+        message: video.error?.message,
+        src: video.src
+    });
+
+    // محاولة إعادة التحميل
+    if (video.error) {
+        const currentSrc = video.src;
+        video.src = '';
+        setTimeout(() => {
+            video.src = currentSrc;
+            video.load();
+        }, 500);
+    }
+};
 </script>
 
 <template>

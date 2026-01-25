@@ -435,6 +435,85 @@ onUnmounted(() => {
     }
 });
 
+// معالجة أخطاء الفيديو
+const handleVideoError = (event) => {
+    console.error('Video error:', event);
+    const video = event.target;
+    console.error('Video error details:', {
+        error: video.error,
+        code: video.error?.code,
+        message: video.error?.message,
+        src: video.src
+    });
+
+    // محاولة إعادة التحميل
+    if (video.error && video.error.code === 4) {
+        // MEDIA_ERR_SRC_NOT_SUPPORTED
+        console.warn('Video format not supported, trying to reload...');
+        const currentSrc = video.src;
+        video.src = '';
+        setTimeout(() => {
+            video.src = currentSrc;
+            video.load();
+            video.play().catch(e => {
+                console.error('Failed to play after reload:', e);
+                // الانتقال للعنصر التالي في حالة الفشل
+                if (currentItem.value?.type === 'video') {
+                    nextItem();
+                }
+            });
+        }, 500);
+    } else {
+        // للأخطاء الأخرى، الانتقال للعنصر التالي
+        if (currentItem.value?.type === 'video') {
+            setTimeout(() => nextItem(), 1000);
+        }
+    }
+};
+
+const handleVideoLoaded = (event) => {
+    const video = event.target;
+    console.log('Video metadata loaded:', {
+        duration: video.duration,
+        videoWidth: video.videoWidth,
+        videoHeight: video.videoHeight,
+        readyState: video.readyState
+    });
+
+    // التأكد من أن الفيديو جاهز للتشغيل
+    if (video.readyState >= 2) {
+        video.play().catch(e => {
+            console.error('Failed to play video:', e);
+        });
+    }
+};
+
+const handleVideoStalled = (event) => {
+    console.warn('Video stalled, attempting to recover...');
+    const video = event.target;
+    // محاولة إعادة التحميل
+    if (video.readyState < 3) {
+        video.load();
+    }
+};
+
+const handleVideoWaiting = (event) => {
+    console.log('Video waiting for data...');
+    const video = event.target;
+    // إذا استمر الانتظار لأكثر من 5 ثواني، حاول إعادة التحميل
+    setTimeout(() => {
+        if (video.readyState < 3) {
+            console.warn('Video still waiting, reloading...');
+            const currentSrc = video.src;
+            video.src = '';
+            setTimeout(() => {
+                video.src = currentSrc;
+                video.load();
+            }, 100);
+        }
+    }, 5000);
+};
+
 watch(currentItem, (newItem) => {
     if (newItem?.type === 'image' && !broadcastItem.value) {
         scheduleNext();
@@ -465,7 +544,21 @@ watch(broadcastItem, (newVal, oldVal) => {
                     }"
                 >
                     <img v-if="currentItem.type === 'image'" :src="currentItem.url" class="w-full h-full object-cover"/>
-                    <video v-else-if="currentItem.type === 'video'" :src="currentItem.url" class="w-full h-full object-cover" autoplay muted playsinline @ended="nextItem"></video>
+                    <video
+                        v-else-if="currentItem.type === 'video'"
+                        :src="currentItem.url"
+                        class="w-full h-full object-cover"
+                        autoplay
+                        muted
+                        playsinline
+                        preload="auto"
+                        webkit-playsinline
+                        @ended="nextItem"
+                        @error="handleVideoError"
+                        @loadedmetadata="handleVideoLoaded"
+                        @stalled="handleVideoStalled"
+                        @waiting="handleVideoWaiting"
+                    ></video>
                 </div>
             </transition>
             <div
@@ -481,7 +574,21 @@ watch(broadcastItem, (newVal, oldVal) => {
             <transition name="fade">
                 <div v-if="broadcastItem" class="absolute inset-0 z-40">
                     <img v-if="broadcastItem.type === 'image'" :src="broadcastItem.url" class="w-full h-full object-cover"/>
-                    <video v-else-if="broadcastItem.type === 'video'" :src="broadcastItem.url" class="w-full h-full object-cover" autoplay muted playsinline loop></video>
+                    <video
+                        v-else-if="broadcastItem.type === 'video'"
+                        :src="broadcastItem.url"
+                        class="w-full h-full object-cover"
+                        autoplay
+                        muted
+                        playsinline
+                        webkit-playsinline
+                        loop
+                        preload="auto"
+                        @error="handleVideoError"
+                        @loadedmetadata="handleVideoLoaded"
+                        @stalled="handleVideoStalled"
+                        @waiting="handleVideoWaiting"
+                    ></video>
                 </div>
             </transition>
 

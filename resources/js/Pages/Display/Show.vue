@@ -741,70 +741,96 @@ watch(broadcastItem, (newVal, oldVal) => {
                                 </div>
                             </div>
 
-                            <!-- Doctors View -->
-                            <div v-if="inquiryStep === 'doctors'" class="px-6 py-8 space-y-6">
-                                <div class="flex items-center justify-between mb-4">
+                            <!-- Doctors View - تصميم حديث وسلس -->
+                            <div v-if="inquiryStep === 'doctors'" class="px-6 py-8">
+                                <div class="flex items-center justify-between mb-6">
                                     <button
                                         @click="goBack"
-                                        class="flex items-center gap-2 px-4 py-2 bg-white/80 hover:bg-white rounded-xl text-gray-700 font-medium transition-all duration-200 hover:scale-105 shadow-md"
+                                        class="flex items-center gap-2 px-5 py-2.5 bg-white/90 hover:bg-white rounded-xl text-gray-700 font-semibold transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl"
                                     >
                                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
                                         </svg>
                                         <span>رجوع</span>
                                     </button>
-                                    <div class="text-sm text-gray-600 bg-white/60 px-4 py-2 rounded-xl font-medium">
+                                    <div class="text-sm text-gray-700 bg-gradient-to-r from-indigo-100 to-purple-100 px-5 py-2.5 rounded-xl font-bold shadow-md border border-indigo-200">
                                         {{ selectedDepartment.doctors.length }} طبيب
                                     </div>
                                 </div>
                                 <div class="max-h-[calc(100vh-400px)] overflow-y-auto pr-2 custom-scrollbar pb-4">
-                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                    <div class="max-w-4xl mx-auto space-y-4">
                                         <div
-                                            v-for="doctor in selectedDepartment.doctors"
+                                            v-for="(doctor, index) in selectedDepartment.doctors"
                                             :key="doctor.id"
                                             @click="selectDoctor(doctor)"
-                                            class="group relative bg-gradient-to-br from-white to-blue-50/50 rounded-2xl p-6 cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl border-2 border-blue-100 hover:border-indigo-400 hover:from-indigo-50 hover:to-purple-50/50"
+                                            class="group relative overflow-hidden bg-gradient-to-r from-white via-white to-blue-50/50 rounded-3xl p-6 cursor-pointer transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl border-2 border-transparent hover:border-indigo-300/50 backdrop-blur-sm"
+                                            :style="{ animationDelay: `${index * 50}ms` }"
                                         >
-                                            <!-- Doctor Icon -->
-                                            <div class="flex justify-center mb-4">
-                                                <div class="relative">
-                                                    <div class="h-24 w-24 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-all duration-300 group-hover:scale-110">
-                                                        <svg class="h-12 w-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                            <!-- Gradient Background Effect -->
+                                            <div class="absolute inset-0 bg-gradient-to-r from-indigo-500/0 via-purple-500/0 to-pink-500/0 group-hover:from-indigo-500/10 group-hover:via-purple-500/10 group-hover:to-pink-500/10 transition-all duration-500"></div>
+
+                                            <!-- Content Container -->
+                                            <div class="relative flex items-center gap-6">
+                                                <!-- Doctor Avatar Container -->
+                                                <div class="flex-shrink-0 relative">
+                                                    <div class="h-24 w-24 rounded-3xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 relative overflow-hidden">
+                                                        <!-- Doctor Photo or Icon -->
+                                                        <img
+                                                            v-if="doctor.photo_url"
+                                                            :src="doctor.photo_url"
+                                                            :alt="doctor.name"
+                                                            class="h-full w-full object-cover rounded-3xl"
+                                                        />
+                                                        <svg v-else class="h-12 w-12 text-white relative z-10 drop-shadow-lg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                                             <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                                         </svg>
+                                                        <!-- Animated Background -->
+                                                        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 group-hover:animate-shimmer"></div>
+                                                        <!-- Glowing Effect -->
+                                                        <div class="absolute inset-0 rounded-3xl bg-gradient-to-br from-indigo-400/50 to-purple-400/50 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500"></div>
                                                     </div>
                                                     <!-- Badge -->
-                                                    <div class="absolute -bottom-2 -right-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg border-2 border-white">
+                                                    <div class="absolute -bottom-2 -right-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg border-2 border-white transform group-hover:scale-110 transition-transform duration-300">
                                                         دكتور
+                                                    </div>
+                                                    <!-- Pulse Ring -->
+                                                    <div class="absolute inset-0 rounded-3xl border-2 border-indigo-400/30 scale-125 opacity-0 group-hover:opacity-100 group-hover:scale-150 transition-all duration-500"></div>
+                                                </div>
+
+                                                <!-- Text Content -->
+                                                <div class="flex-1 min-w-0">
+                                                    <h3 class="text-2xl md:text-3xl font-bold bg-gradient-to-r from-gray-800 via-indigo-600 to-purple-600 bg-clip-text text-transparent group-hover:from-indigo-600 group-hover:via-purple-600 group-hover:to-pink-600 transition-all duration-500 mb-3">
+                                                        {{ doctor.name }}
+                                                    </h3>
+                                                    <div class="flex items-center gap-3 flex-wrap">
+                                                        <!-- Schedules Count -->
+                                                        <div v-if="doctor.schedules && doctor.schedules.length > 0" class="flex items-center gap-2 px-4 py-2 bg-indigo-100/80 rounded-full">
+                                                            <svg class="h-4 w-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                            </svg>
+                                                            <span class="font-semibold text-indigo-700">{{ doctor.schedules.length }} موعد متاح</span>
+                                                        </div>
+                                                        <div v-else class="flex items-center gap-2 px-4 py-2 bg-gray-100/80 rounded-full">
+                                                            <svg class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                            </svg>
+                                                            <span class="text-sm text-gray-600 font-medium">لا توجد مواعيد</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Arrow Icon -->
+                                                <div class="flex-shrink-0 opacity-0 group-hover:opacity-100 transform translate-x-4 group-hover:translate-x-0 transition-all duration-500">
+                                                    <div class="h-12 w-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg">
+                                                        <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                                                        </svg>
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            <!-- Doctor Name -->
-                                            <div class="text-center space-y-2">
-                                                <h3 class="text-xl font-bold text-gray-800 group-hover:text-indigo-600 transition-colors leading-tight">
-                                                    {{ doctor.name }}
-                                                </h3>
-                                                <!-- Schedules Count -->
-                                                <div v-if="doctor.schedules && doctor.schedules.length > 0" class="flex items-center justify-center gap-2 text-sm text-gray-600">
-                                                    <svg class="h-4 w-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                    </svg>
-                                                    <span>{{ doctor.schedules.length }} مواعيد</span>
-                                                </div>
-                                                <div v-else class="text-xs text-gray-400 italic">
-                                                    لا توجد مواعيد
-                                                </div>
-                                            </div>
-
-                                            <!-- Hover Arrow -->
-                                            <div class="absolute top-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <div class="bg-indigo-500 text-white rounded-full p-2">
-                                                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-                                                    </svg>
-                                                </div>
-                                            </div>
+                                            <!-- Bottom Accent Line -->
+                                            <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
                                         </div>
                                     </div>
                                 </div>

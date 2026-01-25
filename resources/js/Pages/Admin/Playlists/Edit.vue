@@ -17,6 +17,22 @@ const form = useForm({
 const searchQuery = ref('');
 const filterType = ref('all'); // all, image, video, audio
 
+// متغيرات للتحكم في نافذة المعاينة
+const isPreviewModalOpen = ref(false);
+const itemToPreview = ref(null);
+
+// دالة لفتح نافذة المعاينة وتمرير العنصر المختار
+const openPreview = (item) => {
+    itemToPreview.value = item;
+    isPreviewModalOpen.value = true;
+};
+
+// دالة لإغلاق نافذة المعاينة
+const closePreview = () => {
+    isPreviewModalOpen.value = false;
+    itemToPreview.value = null;
+};
+
 // الملفات المختارة في القائمة
 const selectedItems = computed(() => {
     return props.mediaItems.filter(item => form.media_items.includes(item.id));
@@ -150,16 +166,26 @@ const submit = () => {
                                     </svg>
                                 </div>
 
-                                <!-- Remove Button -->
-                                <button
-                                    @click="removeFromPlaylist(item.id)"
-                                    class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 shadow-lg"
-                                    type="button"
-                                >
-                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
+                                <!-- أيقونة الفيديو -->
+                                <div v-if="item.file_type === 'video'" class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20">
+                                    <svg class="w-10 h-10 text-white opacity-75" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>
+                                </div>
+
+                                <!-- Overlay مع الأزرار عند hover -->
+                                <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-60 transition-all duration-300 flex items-center justify-center gap-2">
+                                    <!-- زر المعاينة -->
+                                    <button @click.stop="openPreview(item)" class="opacity-0 group-hover:opacity-100 transform group-hover:scale-100 scale-90 transition-all duration-300 p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" type="button">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                    </button>
+                                    <!-- زر الحذف -->
+                                    <button
+                                        @click.stop="removeFromPlaylist(item.id)"
+                                        class="opacity-0 group-hover:opacity-100 transform group-hover:scale-100 scale-90 transition-all duration-300 p-2 bg-red-600 text-white rounded-full hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                                        type="button"
+                                    >
+                                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                    </button>
+                                </div>
 
                                 <!-- Type Badge -->
                                 <div class="absolute bottom-2 right-2">
@@ -274,7 +300,6 @@ const submit = () => {
                             <div
                                 v-for="item in availableItems"
                                 :key="item.id"
-                                @click="toggleMediaItem(item.id)"
                                 class="group relative aspect-square rounded-lg overflow-hidden border-2 border-gray-300 cursor-pointer hover:border-indigo-500 hover:shadow-lg transition-all duration-200 bg-gray-100"
                             >
                                 <img
@@ -295,15 +320,21 @@ const submit = () => {
                                     </svg>
                                 </div>
 
-                                <!-- Add Icon Overlay -->
-                                <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center">
-                                    <div class="opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <div class="h-12 w-12 bg-indigo-500 rounded-full flex items-center justify-center">
-                                            <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                            </svg>
-                                        </div>
-                                    </div>
+                                <!-- أيقونة الفيديو -->
+                                <div v-if="item.file_type === 'video'" class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20">
+                                    <svg class="w-10 h-10 text-white opacity-75" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>
+                                </div>
+
+                                <!-- Overlay مع الأزرار عند hover -->
+                                <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-60 transition-all duration-300 flex items-center justify-center gap-2">
+                                    <!-- زر المعاينة -->
+                                    <button @click.stop="openPreview(item)" class="opacity-0 group-hover:opacity-100 transform group-hover:scale-100 scale-90 transition-all duration-300 p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" type="button">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                    </button>
+                                    <!-- زر الإضافة -->
+                                    <button @click.stop="toggleMediaItem(item.id)" class="opacity-0 group-hover:opacity-100 transform group-hover:scale-100 scale-90 transition-all duration-300 p-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" type="button">
+                                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                                    </button>
                                 </div>
 
                                 <!-- Type Badge -->
@@ -358,6 +389,34 @@ const submit = () => {
                         </div>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        <!-- Preview Modal -->
+        <div v-if="isPreviewModalOpen" @click.self="closePreview" class="fixed inset-0 z-50 bg-black bg-opacity-80 flex items-center justify-center p-4">
+            <div class="bg-white rounded-lg shadow-2xl p-6 max-w-4xl w-full relative">
+                <button @click="closePreview" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600">
+                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+                <h3 class="text-lg font-bold text-gray-800 mb-4">معاينة الوسائط</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                    <!-- Landscape Preview -->
+                    <div class="text-center">
+                        <h4 class="font-semibold text-gray-600 mb-2">معاينة الشاشة العرضية (16:9)</h4>
+                        <div class="bg-gray-800 p-2 rounded-lg shadow-inner w-full aspect-video mx-auto">
+                            <img v-if="itemToPreview && itemToPreview.file_type === 'image'" :src="itemToPreview.url" class="w-full h-full object-cover">
+                            <video v-else-if="itemToPreview && itemToPreview.file_type === 'video'" :src="itemToPreview.url" class="w-full h-full object-cover" controls autoplay loop muted></video>
+                        </div>
+                    </div>
+                    <!-- Portrait Preview -->
+                    <div class="text-center">
+                        <h4 class="font-semibold text-gray-600 mb-2">معاينة الشاشة الطولية (9:16)</h4>
+                        <div class="bg-gray-800 p-2 rounded-lg shadow-inner h-96 aspect-[9/16] mx-auto">
+                            <img v-if="itemToPreview && itemToPreview.file_type === 'image'" :src="itemToPreview.url" class="w-full h-full object-cover">
+                            <video v-else-if="itemToPreview && itemToPreview.file_type === 'video'" :src="itemToPreview.url" class="w-full h-full object-cover" controls autoplay loop muted></video>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </AuthenticatedLayout>

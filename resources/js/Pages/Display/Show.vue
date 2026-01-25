@@ -62,21 +62,24 @@ const scheduleNext = () => {
 const notification = ref(null);
 const showInquiry = ref(false);
 const showMap = ref(false);
+const showMapDialog = ref(false);
 const inquiryStep = ref('departments');
 const selectedDepartment = ref(null);
 const selectedDoctor = ref(null);
 let inactivityTimer = null;
 
-// فقاعة الاستعلامات
-const showInquiryBubble = ref(false);
-let inquiryBubbleTimer = null;
+// تم إزالة فقاعة الاستعلامات - الزر الآن دائماً واضح
 
 const openMap = () => {
-    showMap.value = true;
+    showMapDialog.value = true;
 };
 
 const closeMap = () => {
     showMap.value = false;
+};
+
+const closeMapDialog = () => {
+    showMapDialog.value = false;
 };
 
 // Voice Recognition
@@ -140,39 +143,6 @@ const resetInactivityTimer = () => {
 const openInquiry = () => {
     showInquiry.value = true;
     resetInactivityTimer();
-    // إخفاء الفقاعة عند فتح الاستعلامات
-    hideInquiryBubble();
-};
-
-// إظهار فقاعة الاستعلامات
-const showInquiryBubbleFunc = () => {
-    if (!showInquiry.value && !showMap.value && !broadcastItem.value) {
-        showInquiryBubble.value = true;
-        // إخفاء الفقاعة بعد 5 ثواني
-        setTimeout(() => {
-            hideInquiryBubble();
-        }, 5000);
-    }
-};
-
-// إخفاء فقاعة الاستعلامات
-const hideInquiryBubble = () => {
-    showInquiryBubble.value = false;
-};
-
-// بدء دورة الفقاعة
-const startInquiryBubbleCycle = () => {
-    // إظهار الفقاعة بعد 3 ثواني من تحميل الصفحة
-    setTimeout(() => {
-        showInquiryBubbleFunc();
-    }, 3000);
-
-    // إظهار الفقاعة بشكل متكرر كل 12 ثواني
-    inquiryBubbleTimer = setInterval(() => {
-        if (!showInquiry.value && !showMap.value && !broadcastItem.value) {
-            showInquiryBubbleFunc();
-        }
-    }, 12000);
 };
 
 const closeInquiry = () => {
@@ -397,7 +367,6 @@ const stopVoiceRecognition = () => {
 
 onMounted(() => {
     startPlayer(); // بدء المشغل عند تحميل الصفحة
-    startInquiryBubbleCycle(); // بدء دورة فقاعة الاستعلامات
 
     // تهيئة Speech Recognition
     const recognition = initSpeechRecognition();
@@ -464,12 +433,6 @@ onUnmounted(() => {
     if (speechRecognition.value) {
         speechRecognition.value.abort();
     }
-    // تنظيف timer الفقاعة
-    hideInquiryBubble();
-    if (inquiryBubbleTimer) {
-        clearInterval(inquiryBubbleTimer);
-        inquiryBubbleTimer = null;
-    }
 });
 
 watch(currentItem, (newItem) => {
@@ -522,97 +485,70 @@ watch(broadcastItem, (newVal, oldVal) => {
                 </div>
             </transition>
 
-            <!-- شريط الأدوات الجانبي -->
-            <div v-if="!broadcastItem" class="absolute left-4 top-1/2 -translate-y-1/2 z-30 flex flex-col gap-3">
+            <!-- شريط الأدوات الجانبي - تصميم طولي بارز -->
+            <div v-if="!broadcastItem" class="absolute -left-2 top-1/2 -translate-y-1/2 z-30 flex flex-col gap-2 sidebar-strip">
+                <!-- زر الاستعلامات - نشط/active -->
+                <button
+                    @click="openInquiry"
+                    class="group relative sidebar-button sidebar-button-active flex items-center gap-3 pr-6 pl-4 py-4 shadow-2xl transition-all duration-300"
+                    :class="{
+                        'sidebar-button-inquiry': !showInquiry,
+                        'sidebar-button-active-open': showInquiry
+                    }"
+                >
+                    <!-- أيقونة -->
+                    <div class="flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white drop-shadow-lg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <!-- النص -->
+                    <span class="text-white font-black text-base whitespace-nowrap drop-shadow-2xl tracking-wide">الاستعلام</span>
+                </button>
+
                 <!-- زر التحكم الصوتي -->
                 <button
                     @click="startVoiceRecognition"
-                    class="group relative bg-white/10 backdrop-blur-md hover:bg-white/20 rounded-full p-4 shadow-xl border border-white/20 transition-all duration-300 hover:scale-110"
-                    :class="{'bg-red-500/80 border-red-400 animate-pulse': isListening, 'bg-green-500/80 border-green-400': !isListening && speechRecognition}"
+                    class="group relative sidebar-button flex items-center gap-3 pr-6 pl-4 py-4 shadow-xl transition-all duration-300"
+                    :class="{
+                        'sidebar-button-listening': isListening,
+                        'sidebar-button-ready': !isListening && speechRecognition
+                    }"
                 >
-                    <svg v-if="!isListening" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                    </svg>
-                    <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
-                    </svg>
-                    <!-- Tooltip -->
-                    <span class="absolute right-full mr-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-gray-900 text-white text-sm rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
-                        {{ isListening ? 'جارٍ الاستماع... (اضغط للتوقف)' : speechRecognition ? 'التحكم الصوتي - اضغط للتحدث' : 'التعرف الصوتي غير مدعوم' }}
+                    <!-- أيقونة -->
+                    <div class="flex-shrink-0">
+                        <svg v-if="!isListening" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                        </svg>
+                        <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+                        </svg>
+                    </div>
+                    <!-- النص -->
+                    <span class="text-white font-semibold text-sm whitespace-nowrap">
+                        {{ isListening ? 'جارٍ الاستماع' : 'التحكم الصوتي' }}
                     </span>
                 </button>
-
-                <!-- زر الاستعلامات - تصميم ملفت مع تأثير pulse -->
-                <div class="relative">
-                    <button
-                        @click="openInquiry"
-                        class="group relative rounded-full p-4 shadow-2xl transition-all duration-300 hover:scale-110 inquiry-button"
-                        :class="{
-                            'bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 border-2 border-white/30': !showInquiry,
-                            'bg-gradient-to-br from-blue-500 to-purple-500 border-2 border-blue-300': showInquiry
-                        }"
-                    >
-                        <!-- تأثير Pulse/Animation -->
-                        <div v-if="!showInquiry" class="absolute inset-0 rounded-full bg-gradient-to-br from-orange-400 via-red-400 to-pink-400 animate-ping opacity-75"></div>
-                        <div v-if="!showInquiry" class="absolute inset-0 rounded-full bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 animate-pulse"></div>
-
-                        <!-- أيقونة الاستعلامات -->
-                        <div class="relative z-10">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white drop-shadow-lg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                    </button>
-
-                    <!-- فقاعة عصرية تظهر تلقائياً داخل الشاشة -->
-                    <transition name="bubble">
-                        <div
-                            v-if="showInquiryBubble && !showInquiry && !showMap"
-                            class="absolute left-4 top-1/2 -translate-y-1/2 z-50 inquiry-bubble"
-                            style="transform: translateY(-50%) translateX(0);"
-                        >
-                            <!-- الفقاعة العصرية -->
-                            <div class="relative bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-3xl px-5 py-3 shadow-2xl bubble-modern">
-                                <!-- تأثير اللمعان -->
-                                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent rounded-3xl animate-shimmer"></div>
-
-                                <!-- النص -->
-                                <div class="relative flex items-center gap-2">
-                                    <svg class="h-5 w-5 text-white animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    <p class="text-sm text-white font-bold whitespace-nowrap drop-shadow-lg">
-                                        للإستعلام يمكنك الضغط هنا
-                                    </p>
-                                </div>
-
-                                <!-- السهم يشير للزر -->
-                                <div class="absolute right-full top-1/2 -translate-y-1/2 w-0 h-0 border-t-[10px] border-t-transparent border-b-[10px] border-b-transparent border-r-[12px] border-r-purple-500 drop-shadow-lg"></div>
-
-                                <!-- نقاط متوهجة للزينة -->
-                                <div class="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-ping"></div>
-                                <div class="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full"></div>
-                            </div>
-                        </div>
-                    </transition>
-                </div>
 
                 <!-- زر الصوت (إذا كان هناك موسيقى خلفية) -->
                 <button
                     v-if="backgroundAudioUrl"
                     @click="toggleMute"
-                    class="group relative bg-white/10 backdrop-blur-md hover:bg-white/20 rounded-full p-4 shadow-xl border border-white/20 transition-all duration-300 hover:scale-110"
+                    class="group relative sidebar-button flex items-center gap-3 pr-6 pl-4 py-4 shadow-xl transition-all duration-300"
                 >
-                    <svg v-if="isMuted" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 14l4-4m0 0l-4-4m4 4H7" />
-                    </svg>
-                    <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                    </svg>
-                    <!-- Tooltip -->
-                    <span class="absolute right-full mr-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-gray-900 text-white text-sm rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                    <!-- أيقونة -->
+                    <div class="flex-shrink-0">
+                        <svg v-if="isMuted" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 14l4-4m0 0l-4-4m4 4H7" />
+                        </svg>
+                        <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                        </svg>
+                    </div>
+                    <!-- النص -->
+                    <span class="text-white font-semibold text-sm whitespace-nowrap">
                         {{ isMuted ? 'تشغيل الصوت' : 'إيقاف الصوت' }}
                     </span>
                 </button>
@@ -620,16 +556,17 @@ watch(broadcastItem, (newVal, oldVal) => {
                 <!-- زر الخريطة التفاعلية -->
                 <button
                     @click="openMap"
-                    class="group relative bg-white/10 backdrop-blur-md hover:bg-white/20 rounded-full p-4 shadow-xl border border-white/20 transition-all duration-300 hover:scale-110"
-                    :class="{'bg-green-500/80 border-green-400': showMap}"
+                    class="group relative sidebar-button flex items-center gap-3 pr-6 pl-4 py-4 shadow-xl transition-all duration-300"
+                    :class="{'sidebar-button-map-active': showMap}"
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                    </svg>
-                    <!-- Tooltip -->
-                    <span class="absolute right-full mr-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-gray-900 text-white text-sm rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                        خريطة العيادة التفاعلية
-                    </span>
+                    <!-- أيقونة -->
+                    <div class="flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                        </svg>
+                    </div>
+                    <!-- النص -->
+                    <span class="text-white font-semibold text-sm whitespace-nowrap">الخريطة</span>
                 </button>
             </div>
 
@@ -640,6 +577,47 @@ watch(broadcastItem, (newVal, oldVal) => {
                     :floors="props.floors || []"
                     @close="closeMap"
                 />
+            </transition>
+
+            <!-- Dialog خريطة العيادات قيد التجهيز -->
+            <transition name="dialog">
+                <div v-if="showMapDialog" @click.self="closeMapDialog" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div class="bg-gradient-to-br from-white via-blue-50/50 to-purple-50/30 rounded-3xl shadow-2xl max-w-md w-full p-8 border border-white/20 backdrop-blur-xl transform transition-all">
+                        <!-- أيقونة -->
+                        <div class="flex justify-center mb-6">
+                            <div class="h-20 w-20 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-xl">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        <!-- العنوان -->
+                        <h3 class="text-2xl font-bold text-center text-gray-800 mb-3">
+                            خدمة خريطة العيادات
+                        </h3>
+
+                        <!-- الرسالة -->
+                        <p class="text-center text-gray-600 mb-6 leading-relaxed">
+                            نعمل حالياً على تطوير هذه الخدمة لتكون متاحة قريباً
+                        </p>
+
+                        <!-- أيقونة التحميل -->
+                        <div class="flex justify-center mb-6">
+                            <div class="relative">
+                                <div class="h-16 w-16 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin"></div>
+                            </div>
+                        </div>
+
+                        <!-- زر الإغلاق -->
+                        <button
+                            @click="closeMapDialog"
+                            class="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold py-3 px-6 rounded-xl hover:from-blue-600 hover:to-purple-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                        >
+                            حسناً
+                        </button>
+                    </div>
+                </div>
             </transition>
 
             <!-- نافذة الاستعلامات - تصميم عصري مع موضع في منتصف الشاشة -->
@@ -1050,6 +1028,22 @@ watch(broadcastItem, (newVal, oldVal) => {
     transform: scale(0.95) translateY(20px);
 }
 
+/* Dialog Animation */
+.dialog-enter-active {
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.dialog-leave-active {
+    transition: all 0.25s ease-in;
+}
+.dialog-enter-from {
+    opacity: 0;
+    transform: scale(0.8) translateY(20px);
+}
+.dialog-leave-to {
+    opacity: 0;
+    transform: scale(0.9) translateY(10px);
+}
+
 /* Inquiry Button Animation */
 @keyframes bounce-slow {
     0%, 100% {
@@ -1062,6 +1056,143 @@ watch(broadcastItem, (newVal, oldVal) => {
 
 .animate-bounce-slow {
     animation: bounce-slow 2s ease-in-out infinite;
+}
+
+@keyframes bounce-slow {
+    0%, 100% {
+        transform: translateY(0) scale(1);
+    }
+    50% {
+        transform: translateY(-3px) scale(1.1);
+    }
+}
+
+/* Sticker مائل داخل الأيقونة */
+.sticker-badge {
+    animation: stickerAppear 0.5s ease-out;
+}
+
+.sticker-text {
+    transform: rotate(-12deg);
+    transform-origin: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.sticker-text::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 50%);
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+@keyframes stickerAppear {
+    from {
+        opacity: 0;
+        transform: scale(0.5) rotate(-12deg);
+    }
+    50% {
+        transform: scale(1.1) rotate(-12deg);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) rotate(-12deg);
+    }
+}
+
+/* شريط الأدوات الجانبي الطولي */
+.sidebar-strip {
+    backdrop-filter: blur(10px);
+}
+
+.sidebar-button {
+    position: relative;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-right: none;
+    border-radius: 0 1.5rem 1.5rem 0;
+    min-width: 180px;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.sidebar-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar-button:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateX(4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.sidebar-button:hover::before {
+    opacity: 1;
+}
+
+/* زر الاستعلامات - نشط/active */
+.sidebar-button-inquiry {
+    background: linear-gradient(135deg, rgba(251, 146, 60, 0.9) 0%, rgba(239, 68, 68, 0.9) 50%, rgba(236, 72, 153, 0.9) 100%);
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 32px rgba(251, 146, 60, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    animation: inquiryPulse 2s ease-in-out infinite;
+}
+
+.sidebar-button-active-open {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.9) 0%, rgba(139, 92, 246, 0.9) 100%);
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 32px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+@keyframes inquiryPulse {
+    0%, 100% {
+        box-shadow: 0 8px 32px rgba(251, 146, 60, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+    50% {
+        box-shadow: 0 8px 40px rgba(251, 146, 60, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+}
+
+/* زر الاستماع */
+.sidebar-button-listening {
+    background: rgba(239, 68, 68, 0.8);
+    border-color: rgba(239, 68, 68, 0.5);
+    animation: listeningPulse 1.5s ease-in-out infinite;
+}
+
+.sidebar-button-ready {
+    background: rgba(34, 197, 94, 0.8);
+    border-color: rgba(34, 197, 94, 0.5);
+}
+
+@keyframes listeningPulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.8;
+    }
+}
+
+/* زر الخريطة النشط */
+.sidebar-button-map-active {
+    background: rgba(34, 197, 94, 0.8);
+    border-color: rgba(34, 197, 94, 0.5);
 }
 
 .inquiry-button {

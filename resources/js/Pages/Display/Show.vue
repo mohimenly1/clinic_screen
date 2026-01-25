@@ -166,7 +166,7 @@ const startInquiryBubbleCycle = () => {
     setTimeout(() => {
         showInquiryBubbleFunc();
     }, 3000);
-    
+
     // إظهار الفقاعة بشكل متكرر كل 12 ثواني
     inquiryBubbleTimer = setInterval(() => {
         if (!showInquiry.value && !showMap.value && !broadcastItem.value) {
@@ -492,9 +492,9 @@ watch(broadcastItem, (newVal, oldVal) => {
         <div :style="containerStyle" class="relative">
             <!-- مشغل الإعلانات - مع إزاحة عند فتح الاستعلامات -->
             <transition name="fade">
-                <div 
-                    v-if="currentItem && isVisible && !broadcastItem" 
-                    :key="currentItem.id" 
+                <div
+                    v-if="currentItem && isVisible && !broadcastItem"
+                    :key="currentItem.id"
                     class="absolute inset-0 transition-all duration-500 ease-in-out"
                     :class="{
                         'translate-x-[-20%] scale-90 opacity-60': showInquiry,
@@ -505,8 +505,8 @@ watch(broadcastItem, (newVal, oldVal) => {
                     <video v-else-if="currentItem.type === 'video'" :src="currentItem.url" class="w-full h-full object-cover" autoplay muted playsinline @ended="nextItem"></video>
                 </div>
             </transition>
-            <div 
-                v-if="!currentItem && !showInquiry && !broadcastItem" 
+            <div
+                v-if="!currentItem && !showInquiry && !broadcastItem"
                 class="w-full h-full flex items-center justify-center text-white text-2xl transition-all duration-500 ease-in-out"
                 :class="{
                     'translate-x-[-20%] scale-90 opacity-60': showInquiry,
@@ -556,7 +556,7 @@ watch(broadcastItem, (newVal, oldVal) => {
                         <!-- تأثير Pulse/Animation -->
                         <div v-if="!showInquiry" class="absolute inset-0 rounded-full bg-gradient-to-br from-orange-400 via-red-400 to-pink-400 animate-ping opacity-75"></div>
                         <div v-if="!showInquiry" class="absolute inset-0 rounded-full bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 animate-pulse"></div>
-                        
+
                         <!-- أيقونة الاستعلامات -->
                         <div class="relative z-10">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white drop-shadow-lg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -567,8 +567,8 @@ watch(broadcastItem, (newVal, oldVal) => {
 
                     <!-- فقاعة عصرية تظهر تلقائياً داخل الشاشة -->
                     <transition name="bubble">
-                        <div 
-                            v-if="showInquiryBubble && !showInquiry && !showMap" 
+                        <div
+                            v-if="showInquiryBubble && !showInquiry && !showMap"
                             class="absolute left-4 top-1/2 -translate-y-1/2 z-50 inquiry-bubble"
                             style="transform: translateY(-50%) translateX(0);"
                         >
@@ -576,7 +576,7 @@ watch(broadcastItem, (newVal, oldVal) => {
                             <div class="relative bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-3xl px-5 py-3 shadow-2xl bubble-modern">
                                 <!-- تأثير اللمعان -->
                                 <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent rounded-3xl animate-shimmer"></div>
-                                
+
                                 <!-- النص -->
                                 <div class="relative flex items-center gap-2">
                                     <svg class="h-5 w-5 text-white animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -586,10 +586,10 @@ watch(broadcastItem, (newVal, oldVal) => {
                                         للإستعلام يمكنك الضغط هنا
                                     </p>
                                 </div>
-                                
+
                                 <!-- السهم يشير للزر -->
                                 <div class="absolute right-full top-1/2 -translate-y-1/2 w-0 h-0 border-t-[10px] border-t-transparent border-b-[10px] border-b-transparent border-r-[12px] border-r-purple-500 drop-shadow-lg"></div>
-                                
+
                                 <!-- نقاط متوهجة للزينة -->
                                 <div class="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-ping"></div>
                                 <div class="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full"></div>
@@ -648,8 +648,8 @@ watch(broadcastItem, (newVal, oldVal) => {
                     <!-- Overlay -->
                     <div @click="resetInactivityTimer" class="absolute inset-0 bg-gradient-to-br from-black/60 via-black/70 to-black/80 backdrop-blur-sm"></div>
 
-                    <!-- Modal Content - موضع في منتصف الشاشة (أسفل قليلاً) -->
-                    <div class="relative w-full max-w-6xl bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 rounded-3xl shadow-2xl overflow-hidden border border-white/20 backdrop-blur-xl transform translate-y-8">
+                    <!-- Modal Content - موضع في منتصف الشاشة مع مسافات أمان -->
+                    <div class="relative w-full max-w-6xl max-h-[90vh] bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 rounded-3xl shadow-2xl overflow-hidden border border-white/20 backdrop-blur-xl transform translate-y-4 flex flex-col">
                         <!-- Header Bar -->
                         <div class="relative bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 p-6 flex items-center justify-between shadow-lg">
                             <div class="flex items-center gap-4">
@@ -678,35 +678,71 @@ watch(broadcastItem, (newVal, oldVal) => {
                             </button>
                         </div>
 
-                        <!-- Content Area -->
-                        <div class="flex-1 overflow-y-auto p-6 bg-white/40 backdrop-blur-sm min-h-0 max-h-[calc(100vh-250px)]">
-                            <!-- Departments View -->
-                            <div v-if="inquiryStep === 'departments'" class="space-y-6">
-                                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        <!-- Content Area - مع مسافات أمان من الأعلى والأسفل -->
+                        <div class="flex-1 overflow-y-auto bg-gradient-to-br from-white/50 via-blue-50/30 to-purple-50/20 backdrop-blur-sm min-h-0 custom-scrollbar" style="max-height: calc(90vh - 180px);">
+                            <!-- Departments View - تصميم حديث يشبه الهاتف -->
+                            <div v-if="inquiryStep === 'departments'" class="max-w-4xl mx-auto px-6 py-8">
+                                <div class="space-y-4">
                                     <div
-                                        v-for="department in departments"
+                                        v-for="(department, index) in departments"
                                         :key="department.id"
                                         @click="selectDepartment(department)"
-                                        class="group relative bg-gradient-to-br from-white to-blue-50/50 rounded-2xl p-6 cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-xl border border-blue-100 hover:border-indigo-300"
+                                        class="group relative overflow-hidden bg-gradient-to-r from-white via-white to-blue-50/50 rounded-3xl p-6 cursor-pointer transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl border-2 border-transparent hover:border-indigo-300/50 backdrop-blur-sm"
+                                        :style="{ animationDelay: `${index * 50}ms` }"
                                     >
-                                        <div class="flex flex-col items-center text-center space-y-4">
-                                            <div class="h-20 w-20 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
-                                                <svg class="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                                </svg>
+                                        <!-- Gradient Background Effect -->
+                                        <div class="absolute inset-0 bg-gradient-to-r from-indigo-500/0 via-purple-500/0 to-pink-500/0 group-hover:from-indigo-500/10 group-hover:via-purple-500/10 group-hover:to-pink-500/10 transition-all duration-500"></div>
+
+                                        <!-- Content Container -->
+                                        <div class="relative flex items-center gap-6">
+                                            <!-- Icon Container - دائري كبير -->
+                                            <div class="flex-shrink-0 relative">
+                                                <div class="h-24 w-24 rounded-3xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 relative overflow-hidden">
+                                                    <!-- Animated Background -->
+                                                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 group-hover:animate-shimmer"></div>
+                                                    <svg class="h-12 w-12 text-white relative z-10 drop-shadow-lg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                                    </svg>
+                                                    <!-- Glowing Effect -->
+                                                    <div class="absolute inset-0 rounded-3xl bg-gradient-to-br from-indigo-400/50 to-purple-400/50 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500"></div>
+                                                </div>
+                                                <!-- Pulse Ring -->
+                                                <div class="absolute inset-0 rounded-3xl border-2 border-indigo-400/30 scale-125 opacity-0 group-hover:opacity-100 group-hover:scale-150 transition-all duration-500"></div>
                                             </div>
-                                            <h3 class="text-xl font-bold text-gray-800 group-hover:text-indigo-600 transition-colors">
-                                                {{ department.name }}
-                                            </h3>
+
+                                            <!-- Text Content -->
+                                            <div class="flex-1 min-w-0">
+                                                <h3 class="text-2xl md:text-3xl font-bold bg-gradient-to-r from-gray-800 via-indigo-600 to-purple-600 bg-clip-text text-transparent group-hover:from-indigo-600 group-hover:via-purple-600 group-hover:to-pink-600 transition-all duration-500 mb-2">
+                                                    {{ department.name }}
+                                                </h3>
+                                                <div class="flex items-center gap-3 text-sm text-gray-600">
+                                                    <div class="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-100/80 rounded-full">
+                                                        <svg class="h-4 w-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                        </svg>
+                                                        <span class="font-semibold text-indigo-700">{{ department.doctors?.length || 0 }} طبيب</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Arrow Icon -->
+                                            <div class="flex-shrink-0 opacity-0 group-hover:opacity-100 transform translate-x-4 group-hover:translate-x-0 transition-all duration-500">
+                                                <div class="h-12 w-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg">
+                                                    <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                                                    </svg>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <!-- Hover Effect -->
-                                        <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/0 to-purple-500/0 group-hover:from-indigo-500/5 group-hover:to-purple-500/5 rounded-2xl transition-all duration-300"></div>
+
+                                        <!-- Bottom Accent Line -->
+                                        <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Doctors View -->
-                            <div v-if="inquiryStep === 'doctors'" class="space-y-6">
+                            <div v-if="inquiryStep === 'doctors'" class="px-6 py-8 space-y-6">
                                 <div class="flex items-center justify-between mb-4">
                                     <button
                                         @click="goBack"
@@ -721,7 +757,7 @@ watch(broadcastItem, (newVal, oldVal) => {
                                         {{ selectedDepartment.doctors.length }} طبيب
                                     </div>
                                 </div>
-                                <div class="max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                                <div class="max-h-[calc(100vh-400px)] overflow-y-auto pr-2 custom-scrollbar pb-4">
                                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                         <div
                                             v-for="doctor in selectedDepartment.doctors"
@@ -775,9 +811,9 @@ watch(broadcastItem, (newVal, oldVal) => {
                             </div>
 
                             <!-- Details View -->
-                            <div v-if="inquiryStep === 'details'" class="h-full flex flex-col">
+                            <div v-if="inquiryStep === 'details'" class="h-full flex flex-col px-6 py-8">
                                 <!-- Header with Back Button -->
-                                <div class="flex items-center justify-between mb-4 flex-shrink-0">
+                                <div class="flex items-center justify-between mb-6 flex-shrink-0">
                                     <button
                                         @click="goBack"
                                         class="flex items-center gap-2 px-4 py-2 bg-white/80 hover:bg-white rounded-xl text-gray-700 font-medium transition-all duration-200 hover:scale-105 shadow-md"
@@ -793,7 +829,7 @@ watch(broadcastItem, (newVal, oldVal) => {
                                 </div>
 
                                 <!-- Scrollable Content -->
-                                <div class="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                                <div class="flex-1 overflow-y-auto pr-2 custom-scrollbar pb-4">
                                     <div class="bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 rounded-2xl p-4 shadow-xl border border-purple-100">
                                         <!-- Doctor Header - Compact -->
                                         <div class="flex items-center gap-3 mb-4 pb-3 border-b border-purple-200">
@@ -1028,6 +1064,7 @@ watch(broadcastItem, (newVal, oldVal) => {
     background: linear-gradient(45deg, #3b82f6, #8b5cf6, #ec4899, #3b82f6);
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     mask-composite: exclude;
     animation: rotateBorder 3s linear infinite;
     opacity: 0.6;
@@ -1059,15 +1096,31 @@ watch(broadcastItem, (newVal, oldVal) => {
 
 @keyframes shimmer {
     0% {
-        transform: translateX(-100%);
+        transform: translateX(-100%) skewX(-12deg);
     }
     100% {
-        transform: translateX(100%);
+        transform: translateX(200%) skewX(-12deg);
     }
 }
 
 .animate-shimmer {
     animation: shimmer 2s ease-in-out infinite;
+}
+
+/* Department Cards Animation */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.inquiry-step-departments > div {
+    animation: slideInUp 0.5s ease-out both;
 }
 
 /* انتقال الفقاعة */

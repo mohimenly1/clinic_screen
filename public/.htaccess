@@ -24,6 +24,14 @@
     RewriteRule ^ index.php [L]
 </IfModule>
 
+# زيادة وقت التنفيذ وحد الذاكرة لمعالجة الفيديوهات الكبيرة
+<IfModule mod_php.c>
+    php_value max_execution_time 3600
+    php_value memory_limit 512M
+    php_value post_max_size 100M
+    php_value upload_max_filesize 100M
+</IfModule>
+
 # تحسين تشغيل الفيديو - إضافة headers مناسبة
 <IfModule mod_headers.c>
     # السماح بـ Range requests للفيديو (للتحميل التدريجي)

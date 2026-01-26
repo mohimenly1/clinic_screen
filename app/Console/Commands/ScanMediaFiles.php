@@ -39,6 +39,10 @@ class ScanMediaFiles extends Command
      */
     public function handle()
     {
+        // زيادة وقت التنفيذ للسماح بمعالجة الفيديوهات الكبيرة
+        set_time_limit(0); // لا يوجد حد زمني للأوامر
+        ini_set('max_execution_time', '0');
+        
         $dryRun = $this->option('dry-run');
         
         $this->info('🔍 Scanning media directory...');

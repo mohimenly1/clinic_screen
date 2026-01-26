@@ -33,6 +33,10 @@ class MediaItemController extends Controller
 
     public function store(Request $request)
     {
+        // زيادة وقت التنفيذ للسماح بمعالجة الفيديوهات الكبيرة
+        set_time_limit(3600); // 60 دقيقة
+        ini_set('max_execution_time', '3600');
+
         $validated = $request->validate([
             'files' => 'required|array',
             // **تحديث**: إضافة أنواع الملفات الصوتية

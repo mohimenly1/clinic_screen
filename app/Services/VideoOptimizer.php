@@ -10,13 +10,17 @@ class VideoOptimizer
 {
     /**
      * تحسين الفيديو وإعادة ترميزه إلى صيغة متوافقة مع المتصفحات
-     * 
+     *
      * @param string $inputPath المسار الكامل للملف الأصلي
      * @param string $outputPath المسار المطلوب للملف المحسّن
      * @return bool|string false في حالة الفشل، أو مسار الملف المحسّن في حالة النجاح
      */
     public function optimize(string $inputPath, string $outputPath): bool|string
     {
+        // زيادة وقت التنفيذ للسماح بمعالجة الفيديوهات الكبيرة
+        set_time_limit(3600); // 60 دقيقة
+        ini_set('max_execution_time', '3600');
+
         // التحقق من وجود FFmpeg
         if (!$this->isFFmpegAvailable()) {
             Log::warning('FFmpeg is not available, skipping video optimization');
@@ -38,7 +42,7 @@ class VideoOptimizer
 
             // تحديد أمر FFmpeg الصحيح
             $ffmpegCmd = $this->getFFmpegCommand();
-            
+
             Log::info('Starting video optimization', [
                 'input' => $inputPath,
                 'output' => $outputPath,
@@ -74,25 +78,46 @@ class VideoOptimizer
 
             // إعداد Process مع PATH صريح
             $process = new Process($command);
-            $process->setTimeout(600); // 10 دقائق كحد أقصى
-            
+            $process->setTimeout(3600); // 60 دقيقة كحد أقصى (للفيديوهات الكبيرة)
+
             // إضافة PATH إلى البيئة (مهم جداً!)
             $currentPath = getenv('PATH');
-            if (empty($currentPath)) {
-                // قيم افتراضية حسب النظام
-                if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-                    // Windows: مسارات شائعة لـ FFmpeg
-                    $currentPath = getenv('SystemRoot') . '\\System32;' . 
-                                   getenv('ProgramFiles') . '\\ffmpeg\\bin;' .
-                                   getenv('ProgramFiles(x86)') . '\\ffmpeg\\bin;' .
-                                   'C:\\ffmpeg\\bin;C:\\tools\\ffmpeg\\bin';
-                } else {
+            $isWindows = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+
+            if ($isWindows) {
+                // Windows: إضافة مسارات FFmpeg الشائعة
+                $windowsPaths = [
+                    'C:\\ffmpeg\\bin',
+                    'C:\\tools\\ffmpeg\\bin',
+                    getenv('ProgramFiles') . '\\ffmpeg\\bin',
+                    getenv('ProgramFiles(x86)') . '\\ffmpeg\\bin',
+                ];
+
+                $enhancedPath = $currentPath ?: '';
+                foreach ($windowsPaths as $path) {
+                    if (!empty($path) && file_exists($path) && strpos($enhancedPath, $path) === false) {
+                        $enhancedPath = $enhancedPath . ';' . $path;
+                    }
+                }
+
+                // إضافة System32 إذا لم يكن موجوداً
+                if (empty($currentPath)) {
+                    $systemRoot = getenv('SystemRoot');
+                    if ($systemRoot) {
+                        $enhancedPath = $systemRoot . '\\System32;' . $enhancedPath;
+                    }
+                }
+
+                $currentPath = $enhancedPath;
+            } else {
+                if (empty($currentPath)) {
                     // macOS/Linux
                     $currentPath = '/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin';
                 }
             }
+
             $process->setEnv(['PATH' => $currentPath]);
-            
+
             Log::info('Running FFmpeg command', [
                 'command' => implode(' ', $command),
                 'ffmpeg_command' => $command[0],
@@ -100,13 +125,13 @@ class VideoOptimizer
                 'input_exists' => file_exists($inputPath),
                 'input_size' => file_exists($inputPath) ? filesize($inputPath) : 0,
             ]);
-            
+
             $process->run();
 
             if (!$process->isSuccessful()) {
                 $errorOutput = $process->getErrorOutput();
                 $standardOutput = $process->getOutput();
-                
+
                 Log::error('FFmpeg optimization failed', [
                     'command' => implode(' ', $command),
                     'exit_code' => $process->getExitCode(),
@@ -117,7 +142,7 @@ class VideoOptimizer
                 ]);
                 return false;
             }
-            
+
             Log::info('FFmpeg process completed successfully', [
                 'exit_code' => $process->getExitCode(),
             ]);
@@ -153,9 +178,28 @@ class VideoOptimizer
     public function isFFmpegAvailable(): bool
     {
         try {
+            $isWindows = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+
+            // على Windows، جرب المسارات الشائعة مباشرة أولاً
+            if ($isWindows) {
+                $commonPaths = [
+                    'C:\\ffmpeg\\bin\\ffmpeg.exe',
+                    'C:\\tools\\ffmpeg\\bin\\ffmpeg.exe',
+                    getenv('ProgramFiles') . '\\ffmpeg\\bin\\ffmpeg.exe',
+                    getenv('ProgramFiles(x86)') . '\\ffmpeg\\bin\\ffmpeg.exe',
+                ];
+
+                foreach ($commonPaths as $path) {
+                    if (!empty($path) && file_exists($path)) {
+                        Log::info('FFmpeg found at common Windows path', ['path' => $path]);
+                        return true;
+                    }
+                }
+            }
+
             // على Windows، قد يكون FFmpeg في مسارات مختلفة
             $commands = ['ffmpeg', 'ffmpeg.exe'];
-            
+
             // محاولة استخدام exec مباشرة أولاً (أكثر موثوقية)
             foreach ($commands as $cmd) {
                 try {
@@ -163,30 +207,54 @@ class VideoOptimizer
                     $returnCode = 0;
                     // استخدام المسار الكامل إذا كان متاحاً
                     $fullCommand = escapeshellcmd($cmd) . ' -version 2>&1';
-                    
+
                     // إضافة PATH إلى البيئة قبل exec (للمتصفحات التي لا تحتوي على PATH)
                     $originalPath = getenv('PATH');
-                    if (empty($originalPath)) {
-                        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-                            // Windows: مسارات شائعة لـ FFmpeg
-                            $defaultPath = getenv('SystemRoot') . '\\System32;' . 
-                                          getenv('ProgramFiles') . '\\ffmpeg\\bin;' .
-                                          getenv('ProgramFiles(x86)') . '\\ffmpeg\\bin;' .
-                                          'C:\\ffmpeg\\bin;C:\\tools\\ffmpeg\\bin';
-                            putenv('PATH=' . $defaultPath);
-                        } else {
+                    $isWindows = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+
+                    if ($isWindows) {
+                        // Windows: إضافة مسارات FFmpeg الشائعة
+                        $windowsPaths = [
+                            'C:\\ffmpeg\\bin',
+                            'C:\\tools\\ffmpeg\\bin',
+                            getenv('ProgramFiles') . '\\ffmpeg\\bin',
+                            getenv('ProgramFiles(x86)') . '\\ffmpeg\\bin',
+                        ];
+
+                        $enhancedPath = $originalPath ?: '';
+                        foreach ($windowsPaths as $path) {
+                            if (!empty($path) && file_exists($path) && strpos($enhancedPath, $path) === false) {
+                                $enhancedPath = $enhancedPath . ';' . $path;
+                            }
+                        }
+
+                        // إضافة System32 إذا لم يكن موجوداً
+                        if (empty($originalPath)) {
+                            $systemRoot = getenv('SystemRoot');
+                            if ($systemRoot) {
+                                $enhancedPath = $systemRoot . '\\System32;' . $enhancedPath;
+                            }
+                        }
+
+                        if ($enhancedPath !== $originalPath) {
+                            putenv('PATH=' . $enhancedPath);
+                        }
+                    } else {
+                        if (empty($originalPath)) {
                             // macOS/Linux
                             putenv('PATH=/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin');
                         }
                     }
-                    
+
                     exec($fullCommand, $output, $returnCode);
-                    
+
                     // استعادة PATH الأصلي
-                    if (empty($originalPath)) {
+                    if ($isWindows && isset($enhancedPath) && $enhancedPath !== $originalPath) {
+                        putenv('PATH=' . ($originalPath ?: ''));
+                    } elseif (!$isWindows && empty($originalPath)) {
                         putenv('PATH=');
                     }
-                    
+
                     if ($returnCode === 0 && !empty($output) && str_contains(implode(' ', $output), 'ffmpeg version')) {
                         Log::info('FFmpeg found via exec', [
                             'command' => $cmd,
@@ -202,7 +270,7 @@ class VideoOptimizer
                     continue;
                 }
             }
-            
+
             // إذا فشل exec، جرب Process مع PATH صريح
             foreach ($commands as $cmd) {
                 try {
@@ -210,22 +278,42 @@ class VideoOptimizer
                     $process->setTimeout(10);
                     // إضافة PATH من البيئة الحالية
                     $currentPath = getenv('PATH');
-                    if (empty($currentPath)) {
-                        // قيم افتراضية حسب النظام
-                        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-                            // Windows: مسارات شائعة لـ FFmpeg
-                            $currentPath = getenv('SystemRoot') . '\\System32;' . 
-                                          getenv('ProgramFiles') . '\\ffmpeg\\bin;' .
-                                          getenv('ProgramFiles(x86)') . '\\ffmpeg\\bin;' .
-                                          'C:\\ffmpeg\\bin;C:\\tools\\ffmpeg\\bin';
-                        } else {
+                    $isWindows = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+
+                    if ($isWindows) {
+                        // Windows: إضافة مسارات FFmpeg الشائعة
+                        $windowsPaths = [
+                            'C:\\ffmpeg\\bin',
+                            'C:\\tools\\ffmpeg\\bin',
+                            getenv('ProgramFiles') . '\\ffmpeg\\bin',
+                            getenv('ProgramFiles(x86)') . '\\ffmpeg\\bin',
+                        ];
+
+                        $enhancedPath = $currentPath ?: '';
+                        foreach ($windowsPaths as $path) {
+                            if (!empty($path) && file_exists($path) && strpos($enhancedPath, $path) === false) {
+                                $enhancedPath = $enhancedPath . ';' . $path;
+                            }
+                        }
+
+                        // إضافة System32 إذا لم يكن موجوداً
+                        if (empty($currentPath)) {
+                            $systemRoot = getenv('SystemRoot');
+                            if ($systemRoot) {
+                                $enhancedPath = $systemRoot . '\\System32;' . $enhancedPath;
+                            }
+                        }
+
+                        $currentPath = $enhancedPath;
+                    } else {
+                        if (empty($currentPath)) {
                             // macOS/Linux
                             $currentPath = '/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin';
                         }
                     }
                     $process->setEnv(['PATH' => $currentPath]);
                     $process->run();
-                    
+
                     $output = trim($process->getOutput());
                     if ($process->isSuccessful() && !empty($output) && str_contains($output, 'ffmpeg version')) {
                         Log::info('FFmpeg found via Process', [
@@ -242,14 +330,14 @@ class VideoOptimizer
                     continue;
                 }
             }
-            
+
             // محاولة أخيرة: استخدام which/where للعثور على FFmpeg
             $whichCommand = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? 'where' : 'which';
             try {
                 $whichProcess = new Process([$whichCommand, 'ffmpeg']);
                 $whichProcess->setTimeout(5);
                 $whichProcess->run();
-                
+
                 if ($whichProcess->isSuccessful()) {
                     $ffmpegPath = trim($whichProcess->getOutput());
                     if (!empty($ffmpegPath) && file_exists($ffmpegPath)) {
@@ -262,7 +350,7 @@ class VideoOptimizer
             } catch (\Exception $e) {
                 // تجاهل الخطأ
             }
-            
+
             Log::warning('FFmpeg not found in system', [
                 'tried_commands' => $commands,
                 'php_os' => PHP_OS,
@@ -284,65 +372,114 @@ class VideoOptimizer
      */
     private function getFFmpegCommand(): string
     {
+        $isWindows = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+
+        // على Windows، جرب المسارات الشائعة مباشرة أولاً
+        if ($isWindows) {
+            $commonPaths = [
+                'C:\\ffmpeg\\bin\\ffmpeg.exe',
+                'C:\\tools\\ffmpeg\\bin\\ffmpeg.exe',
+                getenv('ProgramFiles') . '\\ffmpeg\\bin\\ffmpeg.exe',
+                getenv('ProgramFiles(x86)') . '\\ffmpeg\\bin\\ffmpeg.exe',
+            ];
+
+            foreach ($commonPaths as $path) {
+                if (file_exists($path)) {
+                    Log::info('FFmpeg found at common Windows path', ['path' => $path]);
+                    return $path;
+                }
+            }
+        }
+
         // محاولة العثور على المسار الكامل باستخدام which/where
-        $whichCommand = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? 'where' : 'which';
-        
+        $whichCommand = $isWindows ? 'where' : 'which';
+
         try {
             $output = [];
             $returnCode = 0;
             $originalPath = getenv('PATH');
-            if (empty($originalPath)) {
-                if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-                    // Windows: مسارات شائعة لـ FFmpeg
-                    $defaultPath = getenv('SystemRoot') . '\\System32;' . 
-                                  getenv('ProgramFiles') . '\\ffmpeg\\bin;' .
-                                  getenv('ProgramFiles(x86)') . '\\ffmpeg\\bin;' .
-                                  'C:\\ffmpeg\\bin;C:\\tools\\ffmpeg\\bin';
-                    putenv('PATH=' . $defaultPath);
-                } else {
-                    // macOS/Linux
+
+            // إضافة مسارات Windows الشائعة إلى PATH
+            if ($isWindows) {
+                $windowsPaths = [
+                    'C:\\ffmpeg\\bin',
+                    'C:\\tools\\ffmpeg\\bin',
+                    getenv('ProgramFiles') . '\\ffmpeg\\bin',
+                    getenv('ProgramFiles(x86)') . '\\ffmpeg\\bin',
+                ];
+
+                $enhancedPath = $originalPath;
+                foreach ($windowsPaths as $path) {
+                    if (!empty($path) && file_exists($path)) {
+                        $enhancedPath = $enhancedPath . ';' . $path;
+                    }
+                }
+
+                if ($enhancedPath !== $originalPath) {
+                    putenv('PATH=' . $enhancedPath);
+                }
+            } else {
+                if (empty($originalPath)) {
                     putenv('PATH=/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin');
                 }
             }
-            
+
             exec("{$whichCommand} ffmpeg 2>&1", $output, $returnCode);
-            
-            if (empty($originalPath)) {
-                putenv('PATH=');
+
+            // استعادة PATH الأصلي
+            if ($enhancedPath !== $originalPath) {
+                putenv('PATH=' . ($originalPath ?: ''));
             }
-            
+
             if ($returnCode === 0 && !empty($output)) {
                 $ffmpegPath = trim($output[0]);
                 if (!empty($ffmpegPath) && file_exists($ffmpegPath)) {
-                    Log::info('FFmpeg full path found', ['path' => $ffmpegPath]);
+                    Log::info('FFmpeg full path found via which/where', ['path' => $ffmpegPath]);
                     return $ffmpegPath;
                 }
             }
         } catch (\Exception $e) {
             Log::debug('Failed to find FFmpeg path via which/where', ['error' => $e->getMessage()]);
         }
-        
-        // على Windows، جرب .exe أولاً
-        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+
+        // على Windows، جرب .exe مع PATH محسّن
+        if ($isWindows) {
             $commands = ['ffmpeg.exe', 'ffmpeg'];
             foreach ($commands as $cmd) {
                 try {
                     $process = new Process([$cmd, '-version']);
                     $process->setTimeout(5);
+
+                    // إضافة مسارات Windows الشائعة
                     $currentPath = getenv('PATH');
-                    if (!empty($currentPath)) {
-                        $process->setEnv(['PATH' => $currentPath]);
+                    $windowsPaths = [
+                        'C:\\ffmpeg\\bin',
+                        'C:\\tools\\ffmpeg\\bin',
+                        getenv('ProgramFiles') . '\\ffmpeg\\bin',
+                        getenv('ProgramFiles(x86)') . '\\ffmpeg\\bin',
+                    ];
+
+                    $enhancedPath = $currentPath;
+                    foreach ($windowsPaths as $path) {
+                        if (!empty($path) && file_exists($path) && strpos($enhancedPath, $path) === false) {
+                            $enhancedPath = $enhancedPath . ';' . $path;
+                        }
                     }
+
+                    $process->setEnv(['PATH' => $enhancedPath]);
                     $process->run();
+
                     if ($process->isSuccessful()) {
+                        Log::info('FFmpeg found via Process with enhanced PATH', ['command' => $cmd]);
                         return $cmd;
                     }
                 } catch (\Exception $e) {
+                    Log::debug('FFmpeg Process check failed', ['command' => $cmd, 'error' => $e->getMessage()]);
                     continue;
                 }
             }
         }
-        
+
         // القيمة الافتراضية
         return 'ffmpeg';
     }
@@ -359,7 +496,7 @@ class VideoOptimizer
         try {
             // تحديد أمر ffprobe حسب النظام
             $ffprobeCmd = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? 'ffprobe.exe' : 'ffprobe';
-            
+
             $command = [
                 $ffprobeCmd,
                 '-v', 'error',

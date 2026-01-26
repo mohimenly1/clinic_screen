@@ -7,20 +7,26 @@
 
 ## تثبيت FFmpeg (اختياري - للحصول على أفضل جودة)
 
-### Windows (الطريقة السهلة)
+### Windows (الطريقة السهلة - موصى بها)
 1. قم بتحميل FFmpeg من: https://www.gyan.dev/ffmpeg/builds/
 2. اختر "ffmpeg-release-essentials.zip"
 3. استخرج الملفات إلى مجلد مثل `C:\ffmpeg`
 4. أضف FFmpeg إلى PATH:
-   - افتح "System Properties" > "Environment Variables"
+   - اضغط `Win + R` واكتب `sysdm.cpl` ثم اضغط Enter
+   - أو: ابحث عن "Environment Variables" في قائمة Start
    - في "System variables"، ابحث عن "Path" واختر "Edit"
    - اضغط "New" وأضف: `C:\ffmpeg\bin`
    - اضغط "OK" لحفظ التغييرات
-5. أعد تشغيل Terminal/Command Prompt
-6. تحقق من التثبيت:
+   - **مهم**: أعد تشغيل Command Prompt/PowerShell بعد إضافة PATH
+5. تحقق من التثبيت:
    ```cmd
    ffmpeg -version
    ```
+   
+   **ملاحظة**: إذا لم يعمل الأمر، تأكد من:
+   - إعادة تشغيل Terminal/Command Prompt بعد إضافة PATH
+   - التحقق من أن `C:\ffmpeg\bin\ffmpeg.exe` موجود
+   - إعادة تشغيل Laravel/PHP-FPM إذا كان يعمل كخدمة
 
 ### Windows (استخدام Chocolatey - أسهل)
 ```cmd

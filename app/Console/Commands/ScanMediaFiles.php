@@ -3,9 +3,11 @@
 namespace App\Console\Commands;
 
 use App\Models\MediaItem;
+use App\Services\VideoOptimizer;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class ScanMediaFiles extends Command
 {
@@ -62,6 +64,17 @@ class ScanMediaFiles extends Command
         $added = 0;
         $skipped = 0;
         $errors = 0;
+        $optimizedCount = 0;
+
+        // التحقق من وجود FFmpeg
+        $videoOptimizer = new VideoOptimizer();
+        $hasFFmpeg = $videoOptimizer->isFFmpegAvailable();
+        
+        if ($hasFFmpeg) {
+            $this->info("✅ FFmpeg available - videos will be optimized");
+        } else {
+            $this->warn("⚠️  FFmpeg not available - videos will be added without optimization");
+        }
 
         // الحصول على جميع مسارات الملفات الموجودة في قاعدة البيانات
         $existingPaths = MediaItem::pluck('file_path')->toArray();
@@ -95,18 +108,60 @@ class ScanMediaFiles extends Command
                     $this->line("➕ Would add: {$file->getFilename()} (Type: {$type})");
                     $added++;
                 } else {
+                    $finalPath = $relativePath;
+                    $duration = 10;
+                    
+                    // إذا كان الفيديو وFFmpeg متاح، قم بتحسينه
+                    if ($type === 'video' && $hasFFmpeg) {
+                        $fullPath = $file->getPathname();
+                        $optimizedPath = 'media/' . uniqid() . '_optimized.mp4';
+                        $optimizedFullPath = Storage::disk('public')->path($optimizedPath);
+                        
+                        $this->line("🔄 Optimizing video: {$file->getFilename()}...");
+                        
+                        $optimized = $videoOptimizer->optimize($fullPath, $optimizedFullPath);
+                        
+                        if ($optimized && file_exists($optimizedFullPath)) {
+                            $finalPath = $optimizedPath;
+                            $optimizedCount++;
+                            $duration = $videoOptimizer->getDuration($optimizedFullPath) ?? 10;
+                            
+                            // حذف الملف الأصلي بعد التحسين الناجح
+                            try {
+                                File::delete($fullPath);
+                            } catch (\Exception $e) {
+                                Log::warning('Failed to delete original video after optimization', [
+                                    'file' => $fullPath,
+                                    'error' => $e->getMessage(),
+                                ]);
+                            }
+                            
+                            $this->info("✅ Optimized and added: {$file->getFilename()}");
+                        } else {
+                            $this->warn("⚠️  Optimization failed, using original: {$file->getFilename()}");
+                            $duration = $videoOptimizer->getDuration($fullPath) ?? 10;
+                        }
+                    }
+                    
                     // إنشاء سجل في قاعدة البيانات
                     MediaItem::create([
-                        'file_path' => $relativePath,
+                        'file_path' => $finalPath,
                         'file_type' => $type,
-                        'duration' => 10, // القيمة الافتراضية
+                        'duration' => $duration,
                     ]);
                     
-                    $this->info("✅ Added: {$file->getFilename()} (Type: {$type})");
+                    if ($type !== 'video' || !$hasFFmpeg || !isset($optimized)) {
+                        $this->info("✅ Added: {$file->getFilename()} (Type: {$type})");
+                    }
                     $added++;
                 }
             } catch (\Exception $e) {
                 $this->error("❌ Error adding {$file->getFilename()}: {$e->getMessage()}");
+                Log::error('Error in media scan', [
+                    'file' => $file->getFilename(),
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
                 $errors++;
             }
         }
@@ -121,6 +176,9 @@ class ScanMediaFiles extends Command
         }
         $this->info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
         $this->info("✅ Added: {$added}");
+        if ($optimizedCount > 0) {
+            $this->info("🎬 Optimized: {$optimizedCount} video(s)");
+        }
         $this->info("⏭️  Skipped: {$skipped}");
         if ($errors > 0) {
             $this->error("❌ Errors: {$errors}");

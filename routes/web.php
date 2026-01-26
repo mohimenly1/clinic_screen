@@ -60,13 +60,14 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::resource('screens', ScreenController::class);
     Route::resource('media-items', MediaItemController::class);
     Route::post('media-items/scan', [MediaItemController::class, 'scan'])->name('media-items.scan');
+    Route::post('media-items/delete-multiple', [MediaItemController::class, 'destroyMultiple'])->name('media-items.destroy-multiple');
     Route::resource('playlists', PlaylistController::class);
     Route::resource('departments', DepartmentController::class);
     Route::resource('doctors', DoctorController::class);
     Route::resource('floors', FloorController::class);
     Route::resource('rooms', RoomController::class);
     Route::resource('navigation-paths', NavigationPathController::class);
-    
+
     // Room Images Management
     Route::get('rooms/{room}/images', [RoomImageController::class, 'index'])->name('rooms.images.index');
     Route::get('rooms/{room}/images/create', [RoomImageController::class, 'create'])->name('rooms.images.create');

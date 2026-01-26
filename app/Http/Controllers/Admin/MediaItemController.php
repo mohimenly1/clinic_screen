@@ -16,7 +16,7 @@ class MediaItemController extends Controller
     public function index()
     {
         return Inertia::render('Admin/MediaItems/Index', [
-            'mediaItems' => MediaItem::latest()->get()->map(function ($item) {
+            'mediaItems' => MediaItem::latest('id')->get()->map(function ($item) {
                 return [
                     'id' => $item->id,
                     'type' => $item->file_type,
@@ -161,6 +161,44 @@ class MediaItemController extends Controller
         $mediaItem->delete();
 
         return redirect()->route('admin.media-items.index')->with('success', 'تم حذف الملف بنجاح.');
+    }
+
+    /**
+     * حذف عدة ملفات دفعة واحدة
+     */
+    public function destroyMultiple(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'required|integer|exists:media_items,id',
+        ]);
+
+        $deletedCount = 0;
+        $failedCount = 0;
+
+        foreach ($validated['ids'] as $id) {
+            try {
+                $mediaItem = MediaItem::find($id);
+                if ($mediaItem) {
+                    Storage::disk('public')->delete($mediaItem->file_path);
+                    $mediaItem->delete();
+                    $deletedCount++;
+                }
+            } catch (\Exception $e) {
+                Log::error('Failed to delete media item', [
+                    'id' => $id,
+                    'error' => $e->getMessage(),
+                ]);
+                $failedCount++;
+            }
+        }
+
+        $message = "تم حذف {$deletedCount} ملف بنجاح.";
+        if ($failedCount > 0) {
+            $message .= " فشل حذف {$failedCount} ملف.";
+        }
+
+        return redirect()->route('admin.media-items.index')->with('success', $message);
     }
 
     /**

@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\File;
 use Inertia\Inertia;
 
 class MediaItemController extends Controller
@@ -208,14 +209,65 @@ class MediaItemController extends Controller
     /**
      * مسح مجلد الوسائط وإضافة الملفات الجديدة
      */
-    public function scan()
+    public function scan(Request $request)
     {
         try {
-            Artisan::call('media:scan');
-            $output = Artisan::output();
+            // زيادة وقت التنفيذ
+            set_time_limit(3600);
+            ini_set('max_execution_time', '3600');
 
-            return redirect()->route('admin.media-items.index')->with('success', 'تم مسح المجلد وإضافة الملفات الجديدة بنجاح.');
+            // حساب عدد الملفات التي سيتم معالجتها
+            $mediaPath = Storage::disk('public')->path('media');
+
+            if (!File::exists($mediaPath)) {
+                File::makeDirectory($mediaPath, 0755, true);
+            }
+
+            $files = File::allFiles($mediaPath);
+
+            // تصفية الملفات الموجودة بالفعل
+            $existingPaths = MediaItem::pluck('file_path')->toArray();
+            $filesToProcess = collect($files)->filter(function($file) use ($existingPaths) {
+                if ($file->getFilename()[0] === '.' || $file->isDir()) {
+                    return false;
+                }
+                $relativePath = 'media/' . $file->getRelativePathname();
+                return !in_array($relativePath, $existingPaths);
+            })->count();
+
+            // التحقق من وجود معامل "execute" لتنفيذ المسح الفعلي
+            if ($request->has('execute') && $request->input('execute') === 'true') {
+                // تنفيذ المسح الفعلي
+                Artisan::call('media:scan');
+                $output = Artisan::output();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'تم مسح المجلد وإضافة الملفات الجديدة بنجاح.',
+                    'output' => $output,
+                    'total_files' => $filesToProcess,
+                ]);
+            }
+
+            // إرجاع عدد الملفات فقط (بدون تنفيذ المسح)
+            return response()->json([
+                'total_files' => $filesToProcess,
+                'message' => 'جاري بدء عملية المسح...',
+            ]);
+
         } catch (\Exception $e) {
+            Log::error('Scan media error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            if ($request->expectsJson() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'حدث خطأ أثناء مسح المجلد: ' . $e->getMessage(),
+                ], 500);
+            }
+
             return redirect()->route('admin.media-items.index')->with('error', 'حدث خطأ أثناء مسح المجلد: ' . $e->getMessage());
         }
     }

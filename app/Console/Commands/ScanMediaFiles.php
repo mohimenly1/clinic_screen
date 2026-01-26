@@ -42,13 +42,13 @@ class ScanMediaFiles extends Command
         // زيادة وقت التنفيذ للسماح بمعالجة الفيديوهات الكبيرة
         set_time_limit(0); // لا يوجد حد زمني للأوامر
         ini_set('max_execution_time', '0');
-        
+
         $dryRun = $this->option('dry-run');
-        
+
         $this->info('🔍 Scanning media directory...');
-        
+
         $mediaPath = Storage::disk('public')->path('media');
-        
+
         // إنشاء المجلد إذا لم يكن موجوداً
         if (!File::exists($mediaPath)) {
             File::makeDirectory($mediaPath, 0755, true);
@@ -57,14 +57,14 @@ class ScanMediaFiles extends Command
 
         // الحصول على جميع الملفات في المجلد
         $files = File::allFiles($mediaPath);
-        
+
         if (empty($files)) {
             $this->warn('⚠️  No files found in media directory.');
             return Command::SUCCESS;
         }
 
         $this->info("📋 Found " . count($files) . " file(s) to check.");
-        
+
         $added = 0;
         $skipped = 0;
         $errors = 0;
@@ -73,7 +73,7 @@ class ScanMediaFiles extends Command
         // التحقق من وجود FFmpeg
         $videoOptimizer = new VideoOptimizer();
         $hasFFmpeg = $videoOptimizer->isFFmpegAvailable();
-        
+
         if ($hasFFmpeg) {
             $this->info("✅ FFmpeg available - videos will be optimized");
         } else {
@@ -85,7 +85,7 @@ class ScanMediaFiles extends Command
 
         foreach ($files as $file) {
             $relativePath = 'media/' . $file->getRelativePathname();
-            
+
             // تخطي الملفات المخفية والمجلدات
             if ($file->getFilename()[0] === '.' || $file->isDir()) {
                 continue;
@@ -114,22 +114,22 @@ class ScanMediaFiles extends Command
                 } else {
                     $finalPath = $relativePath;
                     $duration = 10;
-                    
+
                     // إذا كان الفيديو وFFmpeg متاح، قم بتحسينه
                     if ($type === 'video' && $hasFFmpeg) {
                         $fullPath = $file->getPathname();
                         $optimizedPath = 'media/' . uniqid() . '_optimized.mp4';
                         $optimizedFullPath = Storage::disk('public')->path($optimizedPath);
-                        
+
                         $this->line("🔄 Optimizing video: {$file->getFilename()}...");
-                        
+
                         $optimized = $videoOptimizer->optimize($fullPath, $optimizedFullPath);
-                        
+
                         if ($optimized && file_exists($optimizedFullPath)) {
                             $finalPath = $optimizedPath;
                             $optimizedCount++;
                             $duration = $videoOptimizer->getDuration($optimizedFullPath) ?? 10;
-                            
+
                             // حذف الملف الأصلي بعد التحسين الناجح
                             try {
                                 File::delete($fullPath);
@@ -139,21 +139,21 @@ class ScanMediaFiles extends Command
                                     'error' => $e->getMessage(),
                                 ]);
                             }
-                            
+
                             $this->info("✅ Optimized and added: {$file->getFilename()}");
                         } else {
                             $this->warn("⚠️  Optimization failed, using original: {$file->getFilename()}");
                             $duration = $videoOptimizer->getDuration($fullPath) ?? 10;
                         }
                     }
-                    
+
                     // إنشاء سجل في قاعدة البيانات
                     MediaItem::create([
                         'file_path' => $finalPath,
                         'file_type' => $type,
                         'duration' => $duration,
                     ]);
-                    
+
                     if ($type !== 'video' || !$hasFFmpeg || !isset($optimized)) {
                         $this->info("✅ Added: {$file->getFilename()} (Type: {$type})");
                     }
@@ -200,11 +200,11 @@ class ScanMediaFiles extends Command
         if (in_array($extension, $this->allowedExtensions['images'])) {
             return 'image';
         }
-        
+
         if (in_array($extension, $this->allowedExtensions['videos'])) {
             return 'video';
         }
-        
+
         if (in_array($extension, $this->allowedExtensions['audio'])) {
             return 'audio';
         }

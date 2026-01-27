@@ -68,6 +68,73 @@ const selectedDepartment = ref(null);
 const selectedDoctor = ref(null);
 let inactivityTimer = null;
 
+// **جديد**: تتبع حالة إعادة التحميل لمنع الطلبات المتكررة
+const videoReloadState = ref({
+    isReloading: false,
+    lastReloadTime: 0,
+    reloadCount: 0,
+    stalledTimeout: null,
+    waitingTimeout: null
+});
+
+// **جديد**: دالة آمنة لإعادة تحميل الفيديو مع throttling
+const safeVideoReload = (video, reason = 'unknown') => {
+    const now = Date.now();
+    const MIN_RELOAD_INTERVAL = 10000; // 10 ثواني كحد أدنى بين إعادة التحميل
+    const MAX_RELOADS_PER_MINUTE = 3; // حد أقصى 3 إعادة تحميل في الدقيقة
+    
+    // التحقق من الوقت المنقضي منذ آخر إعادة تحميل
+    if (now - videoReloadState.value.lastReloadTime < MIN_RELOAD_INTERVAL) {
+        console.warn(`Video reload skipped: too soon (${reason})`);
+        return false;
+    }
+    
+    // التحقق من عدد إعادة التحميل في الدقيقة الأخيرة
+    if (videoReloadState.value.reloadCount >= MAX_RELOADS_PER_MINUTE) {
+        console.warn(`Video reload skipped: too many reloads (${reason})`);
+        return false;
+    }
+    
+    // التحقق من أن الفيديو لا يتم إعادة تحميله بالفعل
+    if (videoReloadState.value.isReloading) {
+        console.warn(`Video reload skipped: already reloading (${reason})`);
+        return false;
+    }
+    
+    // التحقق من أن الفيديو موجود وله src
+    if (!video || !video.src) {
+        console.warn(`Video reload skipped: no video or src (${reason})`);
+        return false;
+    }
+    
+    // بدء عملية إعادة التحميل
+    videoReloadState.value.isReloading = true;
+    videoReloadState.value.lastReloadTime = now;
+    videoReloadState.value.reloadCount++;
+    
+    console.log(`Video reload initiated: ${reason}`);
+    
+    // إعادة تعيين العداد بعد دقيقة
+    setTimeout(() => {
+        videoReloadState.value.reloadCount = Math.max(0, videoReloadState.value.reloadCount - 1);
+    }, 60000);
+    
+    // إعادة التحميل
+    const currentSrc = video.src;
+    video.src = '';
+    setTimeout(() => {
+        video.src = currentSrc;
+        video.load();
+        
+        // إعادة تعيين حالة الإعادة بعد ثانيتين
+        setTimeout(() => {
+            videoReloadState.value.isReloading = false;
+        }, 2000);
+    }, 100);
+    
+    return true;
+};
+
 // تم إزالة فقاعة الاستعلامات - الزر الآن دائماً واضح
 
 const openMap = () => {
@@ -433,6 +500,14 @@ onUnmounted(() => {
     if (speechRecognition.value) {
         speechRecognition.value.abort();
     }
+    
+    // **جديد**: تنظيف timeouts عند إلغاء التثبيت
+    if (videoReloadState.value.stalledTimeout) {
+        clearTimeout(videoReloadState.value.stalledTimeout);
+    }
+    if (videoReloadState.value.waitingTimeout) {
+        clearTimeout(videoReloadState.value.waitingTimeout);
+    }
 });
 
 // معالجة أخطاء الفيديو
@@ -446,15 +521,11 @@ const handleVideoError = (event) => {
         src: video.src
     });
 
-    // محاولة إعادة التحميل
+    // محاولة إعادة التحميل فقط للأخطاء القابلة للاسترداد
     if (video.error && video.error.code === 4) {
-        // MEDIA_ERR_SRC_NOT_SUPPORTED
-        console.warn('Video format not supported, trying to reload...');
-        const currentSrc = video.src;
-        video.src = '';
-        setTimeout(() => {
-            video.src = currentSrc;
-            video.load();
+        // MEDIA_ERR_SRC_NOT_SUPPORTED - محاولة إعادة تحميل آمنة
+        console.warn('Video format not supported, trying safe reload...');
+        if (safeVideoReload(video, 'format_not_supported')) {
             video.play().catch(e => {
                 console.error('Failed to play after reload:', e);
                 // الانتقال للعنصر التالي في حالة الفشل
@@ -462,9 +533,14 @@ const handleVideoError = (event) => {
                     nextItem();
                 }
             });
-        }, 500);
+        } else {
+            // إذا لم نتمكن من إعادة التحميل، انتقل للعنصر التالي
+            if (currentItem.value?.type === 'video') {
+                setTimeout(() => nextItem(), 1000);
+            }
+        }
     } else {
-        // للأخطاء الأخرى، الانتقال للعنصر التالي
+        // للأخطاء الأخرى، الانتقال للعنصر التالي مباشرة
         if (currentItem.value?.type === 'video') {
             setTimeout(() => nextItem(), 1000);
         }
@@ -489,29 +565,53 @@ const handleVideoLoaded = (event) => {
 };
 
 const handleVideoStalled = (event) => {
-    console.warn('Video stalled, attempting to recover...');
     const video = event.target;
-    // محاولة إعادة التحميل
-    if (video.readyState < 3) {
-        video.load();
+    
+    // إلغاء أي timeout سابق
+    if (videoReloadState.value.stalledTimeout) {
+        clearTimeout(videoReloadState.value.stalledTimeout);
     }
+    
+    // انتظار 3 ثواني قبل محاولة إعادة التحميل (لإعطاء الفرصة للشبكة للتعافي)
+    videoReloadState.value.stalledTimeout = setTimeout(() => {
+        // التحقق مرة أخرى من حالة الفيديو
+        if (video.readyState < 3 && !videoReloadState.value.isReloading) {
+            console.warn('Video stalled for 3s, attempting safe reload...');
+            safeVideoReload(video, 'stalled');
+        }
+    }, 3000);
 };
 
 const handleVideoWaiting = (event) => {
-    console.log('Video waiting for data...');
     const video = event.target;
-    // إذا استمر الانتظار لأكثر من 5 ثواني، حاول إعادة التحميل
-    setTimeout(() => {
-        if (video.readyState < 3) {
-            console.warn('Video still waiting, reloading...');
-            const currentSrc = video.src;
-            video.src = '';
-            setTimeout(() => {
-                video.src = currentSrc;
-                video.load();
-            }, 100);
+    
+    // إلغاء أي timeout سابق
+    if (videoReloadState.value.waitingTimeout) {
+        clearTimeout(videoReloadState.value.waitingTimeout);
+    }
+    
+    // انتظار 8 ثواني قبل محاولة إعادة التحميل (أطول من stalled لأن waiting قد يكون طبيعي)
+    videoReloadState.value.waitingTimeout = setTimeout(() => {
+        // التحقق مرة أخرى من حالة الفيديو
+        if (video.readyState < 3 && !videoReloadState.value.isReloading) {
+            console.warn('Video waiting for 8s, attempting safe reload...');
+            safeVideoReload(video, 'waiting');
         }
-    }, 5000);
+    }, 8000);
+};
+
+// **جديد**: دالة لمعالجة حدث canplay لإلغاء timeouts عند نجاح التحميل
+const handleVideoCanPlay = () => {
+    if (videoReloadState.value.stalledTimeout) {
+        clearTimeout(videoReloadState.value.stalledTimeout);
+        videoReloadState.value.stalledTimeout = null;
+    }
+    if (videoReloadState.value.waitingTimeout) {
+        clearTimeout(videoReloadState.value.waitingTimeout);
+        videoReloadState.value.waitingTimeout = null;
+    }
+    // إعادة تعيين حالة الإعادة عند نجاح التحميل
+    videoReloadState.value.isReloading = false;
 };
 
 watch(currentItem, (newItem) => {
@@ -551,13 +651,14 @@ watch(broadcastItem, (newVal, oldVal) => {
                         autoplay
                         muted
                         playsinline
-                        preload="auto"
+                        preload="metadata"
                         webkit-playsinline
                         @ended="nextItem"
                         @error="handleVideoError"
                         @loadedmetadata="handleVideoLoaded"
                         @stalled="handleVideoStalled"
                         @waiting="handleVideoWaiting"
+                        @canplay="handleVideoCanPlay"
                     ></video>
                 </div>
             </transition>
@@ -583,11 +684,12 @@ watch(broadcastItem, (newVal, oldVal) => {
                         playsinline
                         webkit-playsinline
                         loop
-                        preload="auto"
+                        preload="metadata"
                         @error="handleVideoError"
                         @loadedmetadata="handleVideoLoaded"
                         @stalled="handleVideoStalled"
                         @waiting="handleVideoWaiting"
+                        @canplay="handleVideoCanPlay"
                     ></video>
                 </div>
             </transition>

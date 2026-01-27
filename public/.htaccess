@@ -37,7 +37,15 @@
     # السماح بـ Range requests للفيديو (للتحميل التدريجي)
     <FilesMatch "\.(mp4|webm|ogg|mov)$">
         Header set Accept-Ranges bytes
-        Header set Cache-Control "public, max-age=3600"
+        # تحسين cache للفيديو - cache لمدة أطول لتقليل الطلبات المتكررة
+        Header set Cache-Control "public, max-age=86400, immutable"
+        # إضافة ETag للتحقق من التغييرات
+        Header set ETag "W/\"%{TIME}\""
+    </FilesMatch>
+    
+    # تحسين cache للصور أيضاً
+    <FilesMatch "\.(jpg|jpeg|png|gif|webp)$">
+        Header set Cache-Control "public, max-age=86400, immutable"
     </FilesMatch>
 </IfModule>
 

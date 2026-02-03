@@ -74,64 +74,122 @@ const videoReloadState = ref({
     lastReloadTime: 0,
     reloadCount: 0,
     stalledTimeout: null,
-    waitingTimeout: null
+    waitingTimeout: null,
+    currentVideoSrc: null, // تتبع الفيديو الحالي
+    reloadAttemptsPerVideo: new Map(), // تتبع عدد محاولات إعادة التحميل لكل فيديو
+    maxReloadAttempts: 2 // حد أقصى 2 محاولة إعادة تحميل لكل فيديو
 });
+
+// **جديد**: دالة لتنظيف حالة إعادة التحميل عند تغيير الفيديو
+const resetVideoReloadState = (newVideoSrc) => {
+    // إذا تغير الفيديو، قم بإعادة تعيين الحالة
+    if (videoReloadState.value.currentVideoSrc !== newVideoSrc) {
+        // إلغاء أي timeouts نشطة
+        if (videoReloadState.value.stalledTimeout) {
+            clearTimeout(videoReloadState.value.stalledTimeout);
+            videoReloadState.value.stalledTimeout = null;
+        }
+        if (videoReloadState.value.waitingTimeout) {
+            clearTimeout(videoReloadState.value.waitingTimeout);
+            videoReloadState.value.waitingTimeout = null;
+        }
+
+        // إعادة تعيين الحالة
+        videoReloadState.value.isReloading = false;
+        videoReloadState.value.currentVideoSrc = newVideoSrc;
+        videoReloadState.value.lastReloadTime = 0;
+    }
+};
 
 // **جديد**: دالة آمنة لإعادة تحميل الفيديو مع throttling
 const safeVideoReload = (video, reason = 'unknown') => {
     const now = Date.now();
-    const MIN_RELOAD_INTERVAL = 10000; // 10 ثواني كحد أدنى بين إعادة التحميل
-    const MAX_RELOADS_PER_MINUTE = 3; // حد أقصى 3 إعادة تحميل في الدقيقة
-    
-    // التحقق من الوقت المنقضي منذ آخر إعادة تحميل
-    if (now - videoReloadState.value.lastReloadTime < MIN_RELOAD_INTERVAL) {
-        console.warn(`Video reload skipped: too soon (${reason})`);
-        return false;
-    }
-    
-    // التحقق من عدد إعادة التحميل في الدقيقة الأخيرة
-    if (videoReloadState.value.reloadCount >= MAX_RELOADS_PER_MINUTE) {
-        console.warn(`Video reload skipped: too many reloads (${reason})`);
-        return false;
-    }
-    
-    // التحقق من أن الفيديو لا يتم إعادة تحميله بالفعل
-    if (videoReloadState.value.isReloading) {
-        console.warn(`Video reload skipped: already reloading (${reason})`);
-        return false;
-    }
-    
+    const MIN_RELOAD_INTERVAL = 15000; // 15 ثانية كحد أدنى بين إعادة التحميل
+    const MAX_RELOADS_PER_MINUTE = 2; // حد أقصى 2 إعادة تحميل في الدقيقة
+
     // التحقق من أن الفيديو موجود وله src
     if (!video || !video.src) {
         console.warn(`Video reload skipped: no video or src (${reason})`);
         return false;
     }
-    
+
+    const currentSrc = video.src;
+
+    // التحقق من أن الفيديو لا يزال هو نفسه
+    if (videoReloadState.value.currentVideoSrc && videoReloadState.value.currentVideoSrc !== currentSrc) {
+        console.warn(`Video reload skipped: video changed (${reason})`);
+        return false;
+    }
+
+    // الحصول على عدد محاولات إعادة التحميل لهذا الفيديو
+    const reloadAttempts = videoReloadState.value.reloadAttemptsPerVideo.get(currentSrc) || 0;
+
+    // إذا تجاوزنا الحد الأقصى للمحاولات، انتقل للعنصر التالي
+    if (reloadAttempts >= videoReloadState.value.maxReloadAttempts) {
+        console.warn(`Video reload skipped: max attempts reached (${reloadAttempts}/${videoReloadState.value.maxReloadAttempts}). Moving to next item.`);
+        // الانتقال للعنصر التالي
+        if (currentItem.value?.type === 'video') {
+            setTimeout(() => {
+                nextItem();
+            }, 1000);
+        }
+        return false;
+    }
+
+    // التحقق من الوقت المنقضي منذ آخر إعادة تحميل
+    if (now - videoReloadState.value.lastReloadTime < MIN_RELOAD_INTERVAL) {
+        console.warn(`Video reload skipped: too soon (${reason})`);
+        return false;
+    }
+
+    // التحقق من عدد إعادة التحميل في الدقيقة الأخيرة
+    if (videoReloadState.value.reloadCount >= MAX_RELOADS_PER_MINUTE) {
+        console.warn(`Video reload skipped: too many reloads (${reason})`);
+        return false;
+    }
+
+    // التحقق من أن الفيديو لا يتم إعادة تحميله بالفعل
+    if (videoReloadState.value.isReloading) {
+        console.warn(`Video reload skipped: already reloading (${reason})`);
+        return false;
+    }
+
     // بدء عملية إعادة التحميل
     videoReloadState.value.isReloading = true;
     videoReloadState.value.lastReloadTime = now;
     videoReloadState.value.reloadCount++;
-    
-    console.log(`Video reload initiated: ${reason}`);
-    
+    videoReloadState.value.currentVideoSrc = currentSrc;
+
+    // زيادة عدد المحاولات لهذا الفيديو
+    videoReloadState.value.reloadAttemptsPerVideo.set(currentSrc, reloadAttempts + 1);
+
+    console.log(`Video reload initiated: ${reason} (attempt ${reloadAttempts + 1}/${videoReloadState.value.maxReloadAttempts})`);
+
     // إعادة تعيين العداد بعد دقيقة
     setTimeout(() => {
         videoReloadState.value.reloadCount = Math.max(0, videoReloadState.value.reloadCount - 1);
     }, 60000);
-    
-    // إعادة التحميل
-    const currentSrc = video.src;
-    video.src = '';
-    setTimeout(() => {
-        video.src = currentSrc;
+
+    // إعادة التحميل باستخدام load() فقط بدلاً من إعادة تعيين src لتجنب إعادة طلب الملف
+    try {
         video.load();
-        
-        // إعادة تعيين حالة الإعادة بعد ثانيتين
+
+        // إعادة تعيين حالة الإعادة بعد 5 ثواني (أطول من قبل)
         setTimeout(() => {
             videoReloadState.value.isReloading = false;
-        }, 2000);
-    }, 100);
-    
+        }, 5000);
+    } catch (error) {
+        console.error('Error reloading video:', error);
+        videoReloadState.value.isReloading = false;
+        // في حالة الخطأ، انتقل للعنصر التالي
+        if (currentItem.value?.type === 'video') {
+            setTimeout(() => {
+                nextItem();
+            }, 1000);
+        }
+        return false;
+    }
+
     return true;
 };
 
@@ -500,14 +558,21 @@ onUnmounted(() => {
     if (speechRecognition.value) {
         speechRecognition.value.abort();
     }
-    
+
     // **جديد**: تنظيف timeouts عند إلغاء التثبيت
     if (videoReloadState.value.stalledTimeout) {
         clearTimeout(videoReloadState.value.stalledTimeout);
+        videoReloadState.value.stalledTimeout = null;
     }
     if (videoReloadState.value.waitingTimeout) {
         clearTimeout(videoReloadState.value.waitingTimeout);
+        videoReloadState.value.waitingTimeout = null;
     }
+
+    // تنظيف حالة إعادة التحميل
+    videoReloadState.value.isReloading = false;
+    videoReloadState.value.currentVideoSrc = null;
+    videoReloadState.value.reloadAttemptsPerVideo.clear();
 });
 
 // معالجة أخطاء الفيديو
@@ -521,7 +586,22 @@ const handleVideoError = (event) => {
         src: video.src
     });
 
-    // محاولة إعادة التحميل فقط للأخطاء القابلة للاسترداد
+    // التحقق من أن الفيديو لا يزال هو نفسه
+    if (!video || !video.src || video.src !== videoReloadState.value.currentVideoSrc) {
+        return;
+    }
+
+    // إلغاء أي timeouts نشطة
+    if (videoReloadState.value.stalledTimeout) {
+        clearTimeout(videoReloadState.value.stalledTimeout);
+        videoReloadState.value.stalledTimeout = null;
+    }
+    if (videoReloadState.value.waitingTimeout) {
+        clearTimeout(videoReloadState.value.waitingTimeout);
+        videoReloadState.value.waitingTimeout = null;
+    }
+
+    // محاولة إعادة التحميل فقط للأخطاء القابلة للاسترداد ومرة واحدة فقط
     if (video.error && video.error.code === 4) {
         // MEDIA_ERR_SRC_NOT_SUPPORTED - محاولة إعادة تحميل آمنة
         console.warn('Video format not supported, trying safe reload...');
@@ -530,7 +610,7 @@ const handleVideoError = (event) => {
                 console.error('Failed to play after reload:', e);
                 // الانتقال للعنصر التالي في حالة الفشل
                 if (currentItem.value?.type === 'video') {
-                    nextItem();
+                    setTimeout(() => nextItem(), 1000);
                 }
             });
         } else {
@@ -556,6 +636,11 @@ const handleVideoLoaded = (event) => {
         readyState: video.readyState
     });
 
+    // تعيين الفيديو الحالي عند تحميل metadata بنجاح
+    if (video.src) {
+        resetVideoReloadState(video.src);
+    }
+
     // التأكد من أن الفيديو جاهز للتشغيل
     if (video.readyState >= 2) {
         video.play().catch(e => {
@@ -566,42 +651,79 @@ const handleVideoLoaded = (event) => {
 
 const handleVideoStalled = (event) => {
     const video = event.target;
-    
+
+    // التحقق من أن الفيديو لا يزال هو نفسه
+    if (!video || !video.src || video.src !== videoReloadState.value.currentVideoSrc) {
+        return; // تجاهل إذا كان الفيديو قد تغير
+    }
+
     // إلغاء أي timeout سابق
     if (videoReloadState.value.stalledTimeout) {
         clearTimeout(videoReloadState.value.stalledTimeout);
+        videoReloadState.value.stalledTimeout = null;
     }
-    
-    // انتظار 3 ثواني قبل محاولة إعادة التحميل (لإعطاء الفرصة للشبكة للتعافي)
+
+    // إذا كان الفيديو يتم إعادة تحميله بالفعل، لا تفعل شيئاً
+    if (videoReloadState.value.isReloading) {
+        return;
+    }
+
+    // انتظار 5 ثواني قبل محاولة إعادة التحميل (لإعطاء الفرصة للشبكة للتعافي)
     videoReloadState.value.stalledTimeout = setTimeout(() => {
-        // التحقق مرة أخرى من حالة الفيديو
+        // التحقق مرة أخرى من حالة الفيديو وأنه لا يزال هو نفسه
+        if (!video || !video.src || video.src !== videoReloadState.value.currentVideoSrc) {
+            return;
+        }
+
         if (video.readyState < 3 && !videoReloadState.value.isReloading) {
-            console.warn('Video stalled for 3s, attempting safe reload...');
+            console.warn('Video stalled for 5s, attempting safe reload...');
             safeVideoReload(video, 'stalled');
         }
-    }, 3000);
+    }, 5000);
 };
 
 const handleVideoWaiting = (event) => {
     const video = event.target;
-    
+
+    // التحقق من أن الفيديو لا يزال هو نفسه
+    if (!video || !video.src || video.src !== videoReloadState.value.currentVideoSrc) {
+        return; // تجاهل إذا كان الفيديو قد تغير
+    }
+
     // إلغاء أي timeout سابق
     if (videoReloadState.value.waitingTimeout) {
         clearTimeout(videoReloadState.value.waitingTimeout);
+        videoReloadState.value.waitingTimeout = null;
     }
-    
-    // انتظار 8 ثواني قبل محاولة إعادة التحميل (أطول من stalled لأن waiting قد يكون طبيعي)
+
+    // إذا كان الفيديو يتم إعادة تحميله بالفعل، لا تفعل شيئاً
+    if (videoReloadState.value.isReloading) {
+        return;
+    }
+
+    // انتظار 10 ثواني قبل محاولة إعادة التحميل (أطول من stalled لأن waiting قد يكون طبيعي)
     videoReloadState.value.waitingTimeout = setTimeout(() => {
-        // التحقق مرة أخرى من حالة الفيديو
+        // التحقق مرة أخرى من حالة الفيديو وأنه لا يزال هو نفسه
+        if (!video || !video.src || video.src !== videoReloadState.value.currentVideoSrc) {
+            return;
+        }
+
         if (video.readyState < 3 && !videoReloadState.value.isReloading) {
-            console.warn('Video waiting for 8s, attempting safe reload...');
+            console.warn('Video waiting for 10s, attempting safe reload...');
             safeVideoReload(video, 'waiting');
         }
-    }, 8000);
+    }, 10000);
 };
 
 // **جديد**: دالة لمعالجة حدث canplay لإلغاء timeouts عند نجاح التحميل
-const handleVideoCanPlay = () => {
+const handleVideoCanPlay = (event) => {
+    const video = event.target;
+
+    // التحقق من أن الفيديو لا يزال هو نفسه
+    if (!video || !video.src || video.src !== videoReloadState.value.currentVideoSrc) {
+        return;
+    }
+
     if (videoReloadState.value.stalledTimeout) {
         clearTimeout(videoReloadState.value.stalledTimeout);
         videoReloadState.value.stalledTimeout = null;
@@ -612,15 +734,30 @@ const handleVideoCanPlay = () => {
     }
     // إعادة تعيين حالة الإعادة عند نجاح التحميل
     videoReloadState.value.isReloading = false;
+
+    // إعادة تعيين عدد المحاولات عند نجاح التحميل
+    if (video.src) {
+        videoReloadState.value.reloadAttemptsPerVideo.delete(video.src);
+    }
 };
 
-watch(currentItem, (newItem) => {
+watch(currentItem, (newItem, oldItem) => {
+    // إعادة تعيين حالة إعادة التحميل عند تغيير العنصر
+    if (newItem?.url !== oldItem?.url) {
+        resetVideoReloadState(newItem?.url || null);
+    }
+
     if (newItem?.type === 'image' && !broadcastItem.value) {
         scheduleNext();
     }
 });
 
 watch(broadcastItem, (newVal, oldVal) => {
+    // إعادة تعيين حالة إعادة التحميل عند تغيير البث
+    if (newVal?.url !== oldVal?.url) {
+        resetVideoReloadState(newVal?.url || null);
+    }
+
     if (newVal === null && oldVal !== null) {
         console.log("Broadcast ended. Restarting regular playlist...");
         startPlayer();

@@ -60,7 +60,7 @@ return [
         // Application Service Providers...
         App\Providers\AppServiceProvider::class,
         // App\Providers\AuthServiceProvider::class,
-        // App\Providers\BroadcastServiceProvider::class, // **تأكد من أن هذا السطر غير مكرر ومعلق هنا
+        // App\Providers\BroadcastServiceProvider::class, // غير مطلوب في Laravel 11+
         // App\Providers\EventServiceProvider::class,
         // App\Providers\RouteServiceProvider::class,
         Inertia\ServiceProvider::class,

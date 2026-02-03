@@ -31,6 +31,50 @@ class BroadcastController extends Controller
         ]);
     }
 
+    /**
+     * دالة مساعدة لإعادة المحاولة مع معالجة أخطاء DNS
+     */
+    private function broadcastWithRetry($event, $maxRetries = 3)
+    {
+        $lastException = null;
+
+        for ($attempt = 1; $attempt <= $maxRetries; $attempt++) {
+            try {
+                Log::info("--- BROADCAST: Attempt {$attempt}/{$maxRetries} ---");
+
+                // محاولة البث
+                broadcast($event);
+
+                Log::info("--- BROADCAST: Success on attempt {$attempt} ---");
+                return true;
+
+            } catch (\Exception $e) {
+                $lastException = $e;
+                $errorMessage = $e->getMessage();
+
+                Log::warning("--- BROADCAST: Attempt {$attempt} failed: {$errorMessage} ---");
+
+                // إذا كان الخطأ متعلق بـ DNS أو الاتصال، انتظر قليلاً ثم أعد المحاولة
+                if (str_contains($errorMessage, 'Could not resolve host') ||
+                    str_contains($errorMessage, 'cURL error 6') ||
+                    str_contains($errorMessage, 'cURL error 7')) {
+
+                    if ($attempt < $maxRetries) {
+                        // انتظر ثانية واحدة قبل إعادة المحاولة
+                        sleep(1);
+                        continue;
+                    }
+                } else {
+                    // للأخطاء الأخرى، لا نحاول مرة أخرى
+                    break;
+                }
+            }
+        }
+
+        // إذا فشلت جميع المحاولات
+        throw $lastException;
+    }
+
     public function store(Request $request)
     {
         $request->validate(['media_item_id' => 'required|exists:media_items,id']);
@@ -41,14 +85,25 @@ class BroadcastController extends Controller
             $event = new BroadcastMedia($mediaItem);
             Log::info('--- BROADCAST: Calling the broadcast() helper function. ---');
 
-            // **تحديث**: استخدام دالة broadcast() المباشرة
-            broadcast($event);
+            // استخدام دالة البث مع إعادة المحاولة
+            $this->broadcastWithRetry($event);
 
             Log::info('--- BROADCAST: broadcast() helper function executed without errors. ---');
         } catch (\Exception $e) {
-            Log::error('--- BROADCAST FAILED ---: ' . $e->getMessage());
-            // في حالة الفشل، سيتم تسجيل الخطأ، ويمكنك إظهار رسالة خطأ للمستخدم
-            return back()->with('error', 'فشل بدء البث: ' . $e->getMessage());
+            $errorMessage = $e->getMessage();
+            Log::error('--- BROADCAST FAILED ---: ' . $errorMessage);
+
+            // رسالة خطأ أكثر وضوحاً للمستخدم
+            $userMessage = 'فشل بدء البث';
+
+            if (str_contains($errorMessage, 'Could not resolve host') ||
+                str_contains($errorMessage, 'cURL error 6')) {
+                $userMessage = 'فشل الاتصال بخادم البث. يرجى التحقق من إعدادات DNS والاتصال بالإنترنت.';
+            } elseif (str_contains($errorMessage, 'cURL error 7')) {
+                $userMessage = 'فشل الاتصال بخادم البث. يرجى التحقق من الاتصال بالإنترنت وإعدادات الجدار الناري.';
+            }
+
+            return back()->with('error', $userMessage);
         }
 
         Cache::put('active_broadcast_media_id', $mediaItem->id);
@@ -60,13 +115,23 @@ class BroadcastController extends Controller
         try {
             Log::info('--- BROADCAST: Calling broadcast() for StopBroadcast. ---');
 
-            // **تحديث**: استخدام دالة broadcast() المباشرة
-            broadcast(new StopBroadcast());
+            // استخدام دالة البث مع إعادة المحاولة
+            $this->broadcastWithRetry(new StopBroadcast());
 
             Log::info('--- BROADCAST: StopBroadcast executed without errors. ---');
         } catch (\Exception $e) {
-            Log::error('--- BROADCAST STOP FAILED ---: ' . $e->getMessage());
-            return back()->with('error', 'فشل إيقاف البث: ' . $e->getMessage());
+            $errorMessage = $e->getMessage();
+            Log::error('--- BROADCAST STOP FAILED ---: ' . $errorMessage);
+
+            // رسالة خطأ أكثر وضوحاً للمستخدم
+            $userMessage = 'فشل إيقاف البث';
+
+            if (str_contains($errorMessage, 'Could not resolve host') ||
+                str_contains($errorMessage, 'cURL error 6')) {
+                $userMessage = 'فشل الاتصال بخادم البث. يرجى التحقق من إعدادات DNS والاتصال بالإنترنت.';
+            }
+
+            return back()->with('error', $userMessage);
         }
 
         Cache::forget('active_broadcast_media_id');

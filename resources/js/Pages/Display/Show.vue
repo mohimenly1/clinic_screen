@@ -14,6 +14,8 @@ const props = defineProps({
 
 const broadcastItem = ref(props.initialBroadcastItem);
 const audioPlayer = ref(null);
+const currentVideoPlayer = ref(null);
+const broadcastVideoPlayer = ref(null);
 const isMuted = ref(true);
 const currentIndex = ref(0);
 const isVisible = ref(false);
@@ -36,7 +38,7 @@ const nextItem = () => {
     setTimeout(() => {
         currentIndex.value = (currentIndex.value + 1) % (localMediaItems.value.length || 1);
         isVisible.value = true;
-    }, 500);
+    }, 120);
 };
 
 // **جديد**: دالة لبدء أو إعادة تشغيل المشغل
@@ -61,6 +63,7 @@ const scheduleNext = () => {
 
 const notification = ref(null);
 const showInquiry = ref(false);
+const inquiryReady = ref(false);
 const showMap = ref(false);
 const showMapDialog = ref(false);
 const inquiryStep = ref('departments');
@@ -79,6 +82,7 @@ const videoReloadState = ref({
     reloadAttemptsPerVideo: new Map(), // تتبع عدد محاولات إعادة التحميل لكل فيديو
     maxReloadAttempts: 2 // حد أقصى 2 محاولة إعادة تحميل لكل فيديو
 });
+const VIDEO_STALL_SKIP_DELAY = 45000;
 
 // **جديد**: دالة لتنظيف حالة إعادة التحميل عند تغيير الفيديو
 const resetVideoReloadState = (newVideoSrc) => {
@@ -170,7 +174,7 @@ const safeVideoReload = (video, reason = 'unknown') => {
         videoReloadState.value.reloadCount = Math.max(0, videoReloadState.value.reloadCount - 1);
     }, 60000);
 
-    // إعادة التحميل باستخدام load() فقط بدلاً من إعادة تعيين src لتجنب إعادة طلب الملف
+    // يستخدم فقط عند وجود خطأ حقيقي في الملف. لا نستدعيه مع waiting/stalled حتى لا نقطع buffering.
     try {
         video.load();
 
@@ -205,6 +209,20 @@ const closeMap = () => {
 
 const closeMapDialog = () => {
     showMapDialog.value = false;
+};
+
+const pauseDisplayVideo = () => {
+    const video = currentVideoPlayer.value;
+    if (video && !video.paused) {
+        video.pause();
+    }
+};
+
+const resumeDisplayVideo = () => {
+    const video = currentVideoPlayer.value;
+    if (video && currentItem.value?.type === 'video' && !broadcastItem.value) {
+        video.play().catch(e => console.error('Failed to resume display video:', e));
+    }
 };
 
 // Voice Recognition
@@ -266,6 +284,7 @@ const resetInactivityTimer = () => {
 };
 
 const openInquiry = () => {
+    inquiryReady.value = true;
     showInquiry.value = true;
     resetInactivityTimer();
 };
@@ -493,6 +512,17 @@ const stopVoiceRecognition = () => {
 onMounted(() => {
     startPlayer(); // بدء المشغل عند تحميل الصفحة
 
+    // تجهيز واجهة الاستعلام بعد أن يبدأ العرض، حتى لا يحصل تقطيع عند أول نقرة.
+    const prepareInquiry = () => {
+        inquiryReady.value = true;
+    };
+
+    if ('requestIdleCallback' in window) {
+        window.requestIdleCallback(prepareInquiry, { timeout: 2500 });
+    } else {
+        setTimeout(prepareInquiry, 1200);
+    }
+
     // تهيئة Speech Recognition
     const recognition = initSpeechRecognition();
     if (recognition) {
@@ -663,23 +693,19 @@ const handleVideoStalled = (event) => {
         videoReloadState.value.stalledTimeout = null;
     }
 
-    // إذا كان الفيديو يتم إعادة تحميله بالفعل، لا تفعل شيئاً
-    if (videoReloadState.value.isReloading) {
-        return;
-    }
-
-    // انتظار 5 ثواني قبل محاولة إعادة التحميل (لإعطاء الفرصة للشبكة للتعافي)
+    // لا نعيد تحميل الفيديو عند stalled لأن ذلك يسبب تقطيعاً على الأجهزة الضعيفة.
+    // ننتظر مدة طويلة، وإذا ظل عالقاً ننتقل للعنصر التالي فقط.
     videoReloadState.value.stalledTimeout = setTimeout(() => {
         // التحقق مرة أخرى من حالة الفيديو وأنه لا يزال هو نفسه
         if (!video || !video.src || video.src !== videoReloadState.value.currentVideoSrc) {
             return;
         }
 
-        if (video.readyState < 3 && !videoReloadState.value.isReloading) {
-            console.warn('Video stalled for 5s, attempting safe reload...');
-            safeVideoReload(video, 'stalled');
+        if (video.readyState < 2 && currentItem.value?.type === 'video') {
+            console.warn('Video stalled too long. Moving to next item.');
+            nextItem();
         }
-    }, 5000);
+    }, VIDEO_STALL_SKIP_DELAY);
 };
 
 const handleVideoWaiting = (event) => {
@@ -696,23 +722,18 @@ const handleVideoWaiting = (event) => {
         videoReloadState.value.waitingTimeout = null;
     }
 
-    // إذا كان الفيديو يتم إعادة تحميله بالفعل، لا تفعل شيئاً
-    if (videoReloadState.value.isReloading) {
-        return;
-    }
-
-    // انتظار 10 ثواني قبل محاولة إعادة التحميل (أطول من stalled لأن waiting قد يكون طبيعي)
+    // waiting طبيعي مع الشبكات أو الأجهزة الضعيفة. إعادة load هنا تقطع الفيديو أكثر.
     videoReloadState.value.waitingTimeout = setTimeout(() => {
         // التحقق مرة أخرى من حالة الفيديو وأنه لا يزال هو نفسه
         if (!video || !video.src || video.src !== videoReloadState.value.currentVideoSrc) {
             return;
         }
 
-        if (video.readyState < 3 && !videoReloadState.value.isReloading) {
-            console.warn('Video waiting for 10s, attempting safe reload...');
-            safeVideoReload(video, 'waiting');
+        if (video.readyState < 2 && currentItem.value?.type === 'video') {
+            console.warn('Video waiting too long. Moving to next item.');
+            nextItem();
         }
-    }, 10000);
+    }, VIDEO_STALL_SKIP_DELAY);
 };
 
 // **جديد**: دالة لمعالجة حدث canplay لإلغاء timeouts عند نجاح التحميل
@@ -763,32 +784,38 @@ watch(broadcastItem, (newVal, oldVal) => {
         startPlayer();
     }
 });
+
+watch(showInquiry, (isOpen) => {
+    if (isOpen) {
+        pauseDisplayVideo();
+        return;
+    }
+
+    resumeDisplayVideo();
+});
 </script>
 
 <template>
     <audio ref="audioPlayer" v-if="backgroundAudioUrl" :src="backgroundAudioUrl" loop :muted="isMuted"></audio>
-    <div class="fixed inset-0 bg-black w-full h-full overflow-hidden flex items-center justify-center font-sans">
+    <div class="fixed inset-0 bg-black w-full h-full overflow-hidden flex items-center justify-center font-sans display-lite">
         <div :style="containerStyle" class="relative">
             <!-- مشغل الإعلانات - مع إزاحة عند فتح الاستعلامات -->
             <transition name="fade">
                 <div
                     v-if="currentItem && isVisible && !broadcastItem"
                     :key="currentItem.id"
-                    class="absolute inset-0 transition-all duration-500 ease-in-out"
-                    :class="{
-                        'translate-x-[-20%] scale-90 opacity-60': showInquiry,
-                        'translate-x-0 scale-100 opacity-100': !showInquiry
-                    }"
+                    class="absolute inset-0 display-player-layer"
                 >
                     <img v-if="currentItem.type === 'image'" :src="currentItem.url" class="w-full h-full object-cover"/>
                     <video
                         v-else-if="currentItem.type === 'video'"
+                        ref="currentVideoPlayer"
                         :src="currentItem.url"
                         class="w-full h-full object-cover"
                         autoplay
                         muted
                         playsinline
-                        preload="metadata"
+                        preload="auto"
                         webkit-playsinline
                         @ended="nextItem"
                         @error="handleVideoError"
@@ -796,16 +823,13 @@ watch(broadcastItem, (newVal, oldVal) => {
                         @stalled="handleVideoStalled"
                         @waiting="handleVideoWaiting"
                         @canplay="handleVideoCanPlay"
+                        @playing="handleVideoCanPlay"
                     ></video>
                 </div>
             </transition>
             <div
                 v-if="!currentItem && !showInquiry && !broadcastItem"
-                class="w-full h-full flex items-center justify-center text-white text-2xl transition-all duration-500 ease-in-out"
-                :class="{
-                    'translate-x-[-20%] scale-90 opacity-60': showInquiry,
-                    'translate-x-0 scale-100 opacity-100': !showInquiry
-                }"
+                class="w-full h-full flex items-center justify-center text-white text-2xl"
             >
                 لا يوجد محتوى لعرضه.
             </div>
@@ -814,6 +838,7 @@ watch(broadcastItem, (newVal, oldVal) => {
                     <img v-if="broadcastItem.type === 'image'" :src="broadcastItem.url" class="w-full h-full object-cover"/>
                     <video
                         v-else-if="broadcastItem.type === 'video'"
+                        ref="broadcastVideoPlayer"
                         :src="broadcastItem.url"
                         class="w-full h-full object-cover"
                         autoplay
@@ -821,12 +846,13 @@ watch(broadcastItem, (newVal, oldVal) => {
                         playsinline
                         webkit-playsinline
                         loop
-                        preload="metadata"
+                        preload="auto"
                         @error="handleVideoError"
                         @loadedmetadata="handleVideoLoaded"
                         @stalled="handleVideoStalled"
                         @waiting="handleVideoWaiting"
                         @canplay="handleVideoCanPlay"
+                        @playing="handleVideoCanPlay"
                     ></video>
                 </div>
             </transition>
@@ -952,12 +978,12 @@ watch(broadcastItem, (newVal, oldVal) => {
 
             <!-- نافذة الاستعلامات - تصميم عصري مع موضع في منتصف الشاشة -->
             <transition name="modal">
-                <div v-if="showInquiry && !broadcastItem" class="absolute inset-0 z-40 flex items-center justify-center p-4">
+                <div v-if="inquiryReady && !broadcastItem" v-show="showInquiry" class="absolute inset-0 z-40 flex items-center justify-center p-4">
                     <!-- Overlay -->
-                    <div @click="resetInactivityTimer" class="absolute inset-0 bg-gradient-to-br from-black/60 via-black/70 to-black/80 backdrop-blur-sm"></div>
+                    <div @click="resetInactivityTimer" class="absolute inset-0 display-inquiry-overlay"></div>
 
                     <!-- Modal Content - موضع في منتصف الشاشة مع مسافات أمان -->
-                    <div class="relative w-full max-w-6xl max-h-[90vh] bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 rounded-3xl shadow-2xl overflow-hidden border border-white/20 backdrop-blur-xl transform translate-y-4 flex flex-col">
+                    <div class="relative w-full max-w-6xl max-h-[90vh] bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 rounded-3xl shadow-2xl overflow-hidden border border-white/20 transform translate-y-4 flex flex-col display-inquiry-panel">
                         <!-- Header Bar -->
                         <div class="relative bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 p-6 flex items-center justify-between shadow-lg">
                             <div class="flex items-center gap-4">
@@ -1286,30 +1312,6 @@ watch(broadcastItem, (newVal, oldVal) => {
                 </div>
             </transition>
 
-            <!-- Voice Command Feedback -->
-            <transition name="slide-fade">
-                <div v-if="voiceCommandFeedback" class="absolute top-20 left-1/2 -translate-x-1/2 z-50 px-6 py-4 rounded-xl shadow-2xl backdrop-blur-md"
-                     :class="{
-                         'bg-green-500/90 text-white': voiceCommandFeedback.type === 'success',
-                         'bg-red-500/90 text-white': voiceCommandFeedback.type === 'error',
-                         'bg-blue-500/90 text-white': voiceCommandFeedback.type === 'listening',
-                         'bg-yellow-500/90 text-white': voiceCommandFeedback.type === 'processing'
-                     }">
-                    <div class="flex items-center gap-3">
-                        <svg v-if="voiceCommandFeedback.type === 'listening'" class="h-6 w-6 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                        </svg>
-                        <svg v-else-if="voiceCommandFeedback.type === 'success'" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <svg v-else-if="voiceCommandFeedback.type === 'error'" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span class="font-semibold text-lg">{{ voiceCommandFeedback.message }}</span>
-                    </div>
-                </div>
-            </transition>
-
             <!-- إشعارات المواعيد -->
             <transition name="slide-fade">
                 <div v-if="notification" class="absolute inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
@@ -1334,20 +1336,76 @@ watch(broadcastItem, (newVal, oldVal) => {
     </div>
 </template>
 <style>
-.fade-enter-active, .fade-leave-active { transition: opacity 0.5s ease; }
+.display-lite,
+.display-lite * {
+    animation: none !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+    filter: none !important;
+    text-shadow: none !important;
+    transition: none !important;
+}
+
+.display-lite .transform,
+.display-lite [class*="hover:scale"],
+.display-lite [class*="hover:rotate"],
+.display-lite [class*="group-hover:scale"],
+.display-lite [class*="group-hover:rotate"],
+.display-lite [class*="group-hover:translate"] {
+    transform: none !important;
+}
+
+.display-lite .blur-xl,
+.display-lite .backdrop-blur-sm,
+.display-lite .backdrop-blur-md,
+.display-lite .backdrop-blur-xl {
+    filter: none !important;
+    backdrop-filter: none !important;
+}
+
+.display-lite .display-inquiry-panel {
+    background: #f8fafc !important;
+    border: 1px solid rgba(148, 163, 184, 0.35) !important;
+}
+
+.display-lite .display-inquiry-overlay {
+    background: rgba(0, 0, 0, 0.78) !important;
+}
+
+.display-lite .display-player-layer {
+    opacity: 1 !important;
+}
+
+.fade-enter-active, .fade-leave-active { transition: opacity 0.12s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
 .inquiry-fade-enter-active, .inquiry-fade-leave-active { transition: opacity 0.3s ease; }
 .inquiry-fade-enter-from, .inquiry-fade-leave-to { opacity: 0; }
-.slide-fade-enter-active { transition: all 0.4s ease-out; }
-.slide-fade-leave-active { transition: all 0.4s cubic-bezier(1, 0.5, 0.8, 1); }
+.slide-fade-enter-active { transition: opacity 0.4s ease-out, transform 0.4s ease-out; }
+.slide-fade-leave-active { transition: opacity 0.4s cubic-bezier(1, 0.5, 0.8, 1), transform 0.4s cubic-bezier(1, 0.5, 0.8, 1); }
 .slide-fade-enter-from, .slide-fade-leave-to { transform: translateY(20px); opacity: 0; }
+
+.display-player-layer {
+    backface-visibility: hidden;
+    contain: layout paint;
+    transform: translateZ(0);
+    will-change: opacity;
+}
+
+.display-inquiry-overlay {
+    background: rgba(0, 0, 0, 0.72);
+}
+
+.display-inquiry-panel {
+    contain: layout paint;
+    content-visibility: auto;
+}
 
 /* Modal Animation */
 .modal-enter-active {
-    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: opacity 0.22s ease-out, transform 0.22s ease-out;
 }
 .modal-leave-active {
-    transition: all 0.3s ease-in;
+    transition: opacity 0.18s ease-in, transform 0.18s ease-in;
 }
 .modal-enter-from {
     opacity: 0;
@@ -1438,18 +1496,17 @@ watch(broadcastItem, (newVal, oldVal) => {
 
 /* شريط الأدوات الجانبي الطولي */
 .sidebar-strip {
-    backdrop-filter: blur(10px);
+    contain: layout paint;
 }
 
 .sidebar-button {
     position: relative;
     background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-right: none;
     border-radius: 0 1.5rem 1.5rem 0;
     min-width: 180px;
-    transition: all 0.3s ease;
+    transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
     overflow: hidden;
 }
 
@@ -1480,7 +1537,6 @@ watch(broadcastItem, (newVal, oldVal) => {
     background: linear-gradient(135deg, rgba(251, 146, 60, 0.9) 0%, rgba(239, 68, 68, 0.9) 50%, rgba(236, 72, 153, 0.9) 100%);
     border-color: rgba(255, 255, 255, 0.4);
     box-shadow: 0 8px 32px rgba(251, 146, 60, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-    animation: inquiryPulse 2s ease-in-out infinite;
 }
 
 .sidebar-button-active-open {

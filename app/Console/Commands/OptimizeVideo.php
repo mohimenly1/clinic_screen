@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Log;
 
 class OptimizeVideo extends Command
 {
-    protected $signature = 'video:optimize {id? : Media Item ID} {--all : Optimize all videos}';
+    protected $signature = 'video:optimize {id? : Media Item ID} {--all : Optimize all videos} {--force : Re-optimize videos even if they already look optimized}';
     protected $description = 'تحسين فيديو محدد أو جميع الفيديوهات';
 
     public function handle()
@@ -62,8 +62,9 @@ class OptimizeVideo extends Command
         }
         
         // تخطي إذا كان الملف محسّناً بالفعل
-        if (str_contains($video->file_path, '_optimized')) {
+        if (str_contains($video->file_path, '_optimized') && !$this->option('force')) {
             $this->warn("الفيديو محسّن بالفعل، تم التخطي");
+            $this->info("استخدم --force إذا أردت إعادة تحسينه بإعدادات شاشات العرض الجديدة.");
             return;
         }
         

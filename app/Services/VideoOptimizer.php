@@ -53,25 +53,30 @@ class VideoOptimizer
             // المعاملات المستخدمة:
             // -c:v libx264: استخدام H.264 codec
             // -profile:v baseline: استخدام Baseline Profile (أكثر توافقاً)
-            // -level 3.0: مستوى التوافق
+            // -level 3.1: مناسب لملفات 720p مع توافق جيد
             // -pix_fmt yuv420p: تنسيق البكسل المتوافق مع جميع المتصفحات
+            // -vf scale...: تقليل الضلع الطويل إلى 1280px كحد أقصى لتخفيف فك الترميز على الشاشات الضعيفة
             // -movflags +faststart: نقل metadata إلى بداية الملف (للتحميل التدريجي)
             // -c:a aac: استخدام AAC للصوت
             // -b:a 128k: معدل البت للصوت
+            // -maxrate/-bufsize: ضبط معدل البت حتى لا يضغط الفيديو على الشبكة/المعالج
             // -preset medium: توازن بين السرعة والجودة
-            // -crf 23: جودة الفيديو (23 = جودة جيدة)
+            // -crf 24: جودة جيدة مع حجم أخف لشاشات العرض
             $command = [
                 $ffmpegCmd,
                 '-i', $inputPath,
                 '-c:v', 'libx264',
                 '-profile:v', 'baseline',
-                '-level', '3.0',
+                '-level', '3.1',
                 '-pix_fmt', 'yuv420p',
+                '-vf', "scale=w='if(gte(iw\\,ih)\\,min(iw\\,1280)\\,-2)':h='if(lt(iw\\,ih)\\,min(ih\\,1280)\\,-2)'",
                 '-movflags', '+faststart',
+                '-maxrate', '2500k',
+                '-bufsize', '5000k',
                 '-c:a', 'aac',
                 '-b:a', '128k',
                 '-preset', 'medium',
-                '-crf', '23',
+                '-crf', '24',
                 '-y', // الكتابة فوق الملف إذا كان موجوداً
                 $outputPath
             ];

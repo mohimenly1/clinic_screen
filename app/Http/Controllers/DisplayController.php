@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Department;
-use App\Models\Floor;
 use App\Models\MediaItem;
 use App\Models\Playlist;
 use App\Models\Screen;
@@ -35,7 +34,25 @@ class DisplayController extends Controller
             'type' => $item->file_type,
             'duration' => $item->duration,
         ]);
-        $departments = Department::with(['doctors.schedules'])->orderBy('name')->get()->map(fn($department) => [
+        $departments = Department::query()
+            ->select('id', 'name')
+            ->with(['doctors' => function ($query) {
+                $query->select('id', 'department_id', 'name', 'photo_path')
+                    ->with(['schedules' => function ($scheduleQuery) {
+                        $scheduleQuery->select(
+                            'id',
+                            'doctor_id',
+                            'day_of_week',
+                            'start_time',
+                            'end_time',
+                            'clinic_number',
+                            'floor'
+                        );
+                    }]);
+            }])
+            ->orderBy('name')
+            ->get()
+            ->map(fn($department) => [
             'id' => $department->id,
             'name' => $department->name,
             'doctors' => $department->doctors->map(fn($doctor) => [
@@ -58,49 +75,6 @@ class DisplayController extends Controller
             }
         }
 
-        // Load floors with rooms and their images for AR navigation
-        $floors = Floor::with(['rooms' => function($query) {
-            $query->where('is_active', true)
-                ->with(['images' => function($imgQuery) {
-                    $imgQuery->where('is_active', true)->orderBy('display_order');
-                }])
-                ->orderBy('room_number');
-        }])
-            ->orderBy('display_order')
-            ->orderBy('floor_number')
-            ->get()
-            ->map(function($floor) {
-                return [
-                    'id' => $floor->id,
-                    'name' => $floor->name,
-                    'floor_number' => $floor->floor_number ?? 0,
-                    'map_image_url' => $floor->map_image_url,
-                    'description' => $floor->description,
-                    'rooms' => $floor->rooms->map(function($room) {
-                        return [
-                            'id' => $room->id,
-                            'name' => $room->name,
-                            'room_number' => $room->room_number,
-                            'room_type' => $room->room_type,
-                            'map_x' => $room->map_x,
-                            'map_y' => $room->map_y,
-                            'color' => $room->color ?? $room->getColorAttribute(),
-                            'icon' => $room->icon ?? $room->getIconAttribute(),
-                            'description' => $room->description,
-                            'images' => $room->images->map(function($image) {
-                                return [
-                                    'id' => $image->id,
-                                    'image_url' => Storage::url($image->image_path),
-                                    'description' => $image->description,
-                                    'ar_instructions' => $image->ar_instructions,
-                                    'display_order' => $image->display_order,
-                                ];
-                            }),
-                        ];
-                    }),
-                ];
-            });
-
         return Inertia::render('Display/Show', [
             'screen' => [
                 'name' => $screen->name,
@@ -112,8 +86,7 @@ class DisplayController extends Controller
             'departments' => $departments,
             'backgroundAudioUrl' => $backgroundAudioUrl,
             'initialBroadcastItem' => $initialBroadcastItem,
-            'floors' => $floors,
+            'floors' => [],
         ]);
     }
 }
-

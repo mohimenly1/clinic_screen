@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, watch, onUnmounted } from 'vue';
+import { ref, computed, nextTick, onMounted, watch, onUnmounted } from 'vue';
 import { initSpeechRecognition, processVoiceCommand } from '@/utils/voiceCommands';
 import RoomListView from '@/Components/RoomListView.vue';
 
@@ -24,13 +24,25 @@ const isVisible = ref(false);
 const localMediaItems = ref(props.mediaItems);
 
 const currentItem = computed(() => localMediaItems.value?.[currentIndex.value] || null);
-const containerStyle = computed(() => {
+const displayAspectRatio = computed(() => {
     if (props.screen.resolution) {
         const [width, height] = props.screen.resolution.split('x').map(Number);
-        if (width && height) return { height: '100%', aspectRatio: `${width} / ${height}` };
+        if (Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0) {
+            return width / height;
+        }
     }
-    const aspectRatio = props.screen.orientation === 'portrait' ? '9 / 16' : '16 / 9';
-    return { height: '100%', aspectRatio };
+    return props.screen.orientation === 'portrait' ? 9 / 16 : 16 / 9;
+});
+
+const containerStyle = computed(() => {
+    const ratio = displayAspectRatio.value;
+    // Fit the scene inside the viewport and size controls from its shorter side.
+    return {
+        width: `min(100vw, ${100 * ratio}vh)`,
+        height: `min(100vh, ${100 / ratio}vw)`,
+        '--display-height': `min(100vh, ${100 / ratio}vw)`,
+        '--display-unit': `min(1vw, ${ratio}vh, 1vh, ${1 / ratio}vw)`,
+    };
 });
 
 const nextItem = () => {
@@ -64,6 +76,7 @@ const scheduleNext = () => {
 const notification = ref(null);
 const showInquiry = ref(false);
 const inquiryReady = ref(false);
+const inquiryContent = ref(null);
 const showMap = ref(false);
 const showMapDialog = ref(false);
 const inquiryStep = ref('departments');
@@ -793,12 +806,17 @@ watch(showInquiry, (isOpen) => {
 
     resumeDisplayVideo();
 });
+
+watch([inquiryStep, showInquiry], async () => {
+    await nextTick();
+    if (showInquiry.value && inquiryContent.value) inquiryContent.value.scrollTop = 0;
+});
 </script>
 
 <template>
     <audio ref="audioPlayer" v-if="backgroundAudioUrl" :src="backgroundAudioUrl" loop :muted="isMuted"></audio>
     <div class="fixed inset-0 bg-black w-full h-full overflow-hidden flex items-center justify-center font-sans display-lite">
-        <div :style="containerStyle" class="relative">
+        <div :style="containerStyle" :class="{ 'display-stage-portrait': displayAspectRatio < 1 }" class="relative shrink-0">
             <!-- مشغل الإعلانات - مع إزاحة عند فتح الاستعلامات -->
             <transition name="fade">
                 <div
@@ -858,7 +876,7 @@ watch(showInquiry, (isOpen) => {
             </transition>
 
             <!-- شريط الأدوات الجانبي - تصميم طولي بارز -->
-            <div v-if="!broadcastItem" class="absolute -left-2 top-1/2 -translate-y-1/2 z-30 flex flex-col gap-2 sidebar-strip">
+            <div v-if="!broadcastItem" class="absolute left-0 top-1/2 -translate-y-1/2 z-30 flex flex-col sidebar-strip">
                 <!-- زر الاستعلامات - نشط/active -->
                 <button
                     @click="openInquiry"
@@ -976,16 +994,16 @@ watch(showInquiry, (isOpen) => {
                 </div>
             </transition>
 
-            <!-- نافذة الاستعلامات - تصميم عصري مع موضع في منتصف الشاشة -->
+            <!-- نافذة الاستعلامات في الجزء العلوي من منتصف الشاشة -->
             <transition name="modal">
-                <div v-if="inquiryReady && !broadcastItem" v-show="showInquiry" class="absolute inset-0 z-40 flex items-center justify-center p-4">
+                <div v-if="inquiryReady && !broadcastItem" v-show="showInquiry" class="absolute inset-0 z-40 flex items-start justify-center display-inquiry-layout">
                     <!-- Overlay -->
                     <div @click="resetInactivityTimer" class="absolute inset-0 display-inquiry-overlay"></div>
 
-                    <!-- Modal Content - موضع في منتصف الشاشة مع مسافات أمان -->
-                    <div class="relative w-full max-w-6xl max-h-[90vh] bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 rounded-3xl shadow-2xl overflow-hidden border border-white/20 transform translate-y-4 flex flex-col display-inquiry-panel">
+                    <!-- يبقى رأس النافذة ثابتاً ويقتصر التمرير على المحتوى -->
+                    <div class="relative w-full max-w-6xl bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 rounded-3xl shadow-2xl overflow-hidden border border-white/20 flex flex-col display-inquiry-panel">
                         <!-- Header Bar -->
-                        <div class="relative bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 p-6 flex items-center justify-between shadow-lg">
+                        <div class="relative shrink-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 p-6 flex items-center justify-between shadow-lg">
                             <div class="flex items-center gap-4">
                                 <div class="h-12 w-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
                                     <svg class="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -1004,7 +1022,8 @@ watch(showInquiry, (isOpen) => {
                             <!-- زر الإغلاق في الأعلى -->
                             <button
                                 @click="closeInquiry"
-                                class="group relative h-12 w-12 bg-white/20 hover:bg-white/30 rounded-xl flex items-center justify-center transition-all duration-200 backdrop-blur-sm hover:scale-110"
+                                aria-label="إغلاق الاستعلام"
+                                class="group relative shrink-0 h-12 w-12 bg-white/20 hover:bg-white/30 rounded-xl flex items-center justify-center transition-all duration-200 backdrop-blur-sm hover:scale-110"
                             >
                                 <svg class="h-6 w-6 text-white group-hover:rotate-90 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -1013,7 +1032,7 @@ watch(showInquiry, (isOpen) => {
                         </div>
 
                         <!-- Content Area - مع مسافات أمان من الأعلى والأسفل -->
-                        <div class="flex-1 overflow-y-auto bg-gradient-to-br from-white/50 via-blue-50/30 to-purple-50/20 backdrop-blur-sm min-h-0 custom-scrollbar" style="max-height: calc(90vh - 180px);">
+                        <div ref="inquiryContent" @scroll.passive="resetInactivityTimer" @pointerdown="resetInactivityTimer" class="flex-1 overflow-y-auto overscroll-contain bg-gradient-to-br from-white/50 via-blue-50/30 to-purple-50/20 backdrop-blur-sm min-h-0 custom-scrollbar">
                             <!-- Departments View - تصميم حديث يشبه الهاتف -->
                             <div v-if="inquiryStep === 'departments'" class="max-w-4xl mx-auto px-6 py-8">
                                 <div class="space-y-4">
@@ -1091,7 +1110,7 @@ watch(showInquiry, (isOpen) => {
                                         {{ selectedDepartment.doctors.length }} طبيب
                                     </div>
                                 </div>
-                                <div class="max-h-[calc(100vh-400px)] overflow-y-auto pr-2 custom-scrollbar pb-4">
+                                <div class="pr-2 pb-4">
                                     <div class="max-w-4xl mx-auto space-y-4">
                                         <div
                                             v-for="(doctor, index) in selectedDepartment.doctors"
@@ -1171,7 +1190,7 @@ watch(showInquiry, (isOpen) => {
                             </div>
 
                             <!-- Details View -->
-                            <div v-if="inquiryStep === 'details'" class="h-full flex flex-col px-6 py-8">
+                            <div v-if="inquiryStep === 'details'" class="flex flex-col px-6 py-8">
                                 <!-- Header with Back Button -->
                                 <div class="flex items-center justify-between mb-6 flex-shrink-0">
                                     <button
@@ -1188,8 +1207,8 @@ watch(showInquiry, (isOpen) => {
                                     </div>
                                 </div>
 
-                                <!-- Scrollable Content -->
-                                <div class="flex-1 overflow-y-auto pr-2 custom-scrollbar pb-4">
+                                <!-- تمرير التفاصيل من خلال حاوية المحتوى المشتركة -->
+                                <div class="pr-2 pb-4">
                                     <div class="bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 rounded-2xl p-4 shadow-xl border border-purple-100">
                                         <!-- Doctor Header - Compact -->
                                         <div class="flex items-center gap-3 mb-4 pb-3 border-b border-purple-200">
@@ -1395,25 +1414,36 @@ watch(showInquiry, (isOpen) => {
     background: rgba(0, 0, 0, 0.72);
 }
 
+.display-inquiry-layout {
+    padding: calc(var(--display-height) * 0.08) clamp(16px, calc(var(--display-unit) * 3), 64px);
+}
+
 .display-inquiry-panel {
+    max-height: calc(var(--display-height) * 0.84);
     contain: layout paint;
-    content-visibility: auto;
+}
+
+/* Keep portrait kiosk interactions around the upper middle, even with long lists. */
+.display-stage-portrait .display-inquiry-layout {
+    padding-top: calc(var(--display-height) * 0.12);
+}
+
+.display-stage-portrait .display-inquiry-panel {
+    max-height: calc(var(--display-height) * 0.56);
 }
 
 /* Modal Animation */
 .modal-enter-active {
-    transition: opacity 0.22s ease-out, transform 0.22s ease-out;
+    transition: opacity 0.22s ease-out;
 }
 .modal-leave-active {
-    transition: opacity 0.18s ease-in, transform 0.18s ease-in;
+    transition: opacity 0.18s ease-in;
 }
 .modal-enter-from {
     opacity: 0;
-    transform: scale(0.9) translateY(40px);
 }
 .modal-leave-to {
     opacity: 0;
-    transform: scale(0.95) translateY(20px);
 }
 
 /* Dialog Animation */
@@ -1497,11 +1527,38 @@ watch(showInquiry, (isOpen) => {
 /* شريط الأدوات الجانبي الطولي */
 .sidebar-strip {
     contain: layout paint;
+    gap: clamp(12px, calc(var(--display-unit) * 1.2), 28px);
+}
+
+/* Scale with the scene, excluding the surrounding letterbox area. */
+.display-lite .sidebar-button {
+    min-width: clamp(240px, calc(var(--display-unit) * 34), 740px);
+    min-height: clamp(80px, calc(var(--display-unit) * 9), 200px);
+    padding: clamp(18px, calc(var(--display-unit) * 2), 44px) clamp(24px, calc(var(--display-unit) * 3), 64px);
+    gap: clamp(16px, calc(var(--display-unit) * 1.8), 40px);
+    border-radius: 0 clamp(24px, calc(var(--display-unit) * 3), 64px) clamp(24px, calc(var(--display-unit) * 3), 64px) 0;
+    touch-action: manipulation;
+}
+
+.display-lite .sidebar-button > span {
+    font-size: clamp(22px, calc(var(--display-unit) * 3), 64px);
+    line-height: 1.4;
+    font-weight: 800;
+}
+
+.display-lite .sidebar-button svg {
+    width: clamp(32px, calc(var(--display-unit) * 4), 88px);
+    height: clamp(32px, calc(var(--display-unit) * 4), 88px);
+}
+
+.display-lite .sidebar-button:focus-visible {
+    outline: 3px solid white;
+    outline-offset: -6px;
 }
 
 .sidebar-button {
     position: relative;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(30, 41, 59, 0.95);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-right: none;
     border-radius: 0 1.5rem 1.5rem 0;
@@ -1523,7 +1580,7 @@ watch(showInquiry, (isOpen) => {
 }
 
 .sidebar-button:hover {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(51, 65, 85, 0.98);
     transform: translateX(4px);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }

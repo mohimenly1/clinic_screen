@@ -53,6 +53,11 @@ const notification = ref(null);
 const showInquiry = ref(false);
 const inquiryReady = ref(false);
 const inquiryContent = ref(null);
+const inquiryBody = ref(null);
+const inquiryScrollFooter = ref(null);
+const inquiryOverflows = ref(false);
+const canScrollInquiryDown = ref(false);
+let inquiryResizeObserver;
 const showMap = ref(false);
 const showMapDialog = ref(false);
 const inquiryStep = ref('departments');
@@ -130,6 +135,36 @@ const toggleMute = () => {
 const resetInactivityTimer = () => {
     clearTimeout(inactivityTimer);
     inactivityTimer = setTimeout(closeInquiry, 15000);
+};
+
+const updateInquiryScroll = () => {
+    const content = inquiryContent.value;
+    if (!showInquiry.value || !content?.clientHeight || broadcastItem.value) {
+        inquiryOverflows.value = false;
+        canScrollInquiryDown.value = false;
+        return;
+    }
+
+    // Include the footer's height so showing the controls cannot create its own overflow.
+    const availableHeight = content.clientHeight + (inquiryScrollFooter.value?.offsetHeight || 0);
+    inquiryOverflows.value = content.scrollHeight > availableHeight + 2;
+    canScrollInquiryDown.value = content.scrollHeight - content.clientHeight - content.scrollTop > 2;
+};
+
+const handleInquiryScroll = () => {
+    resetInactivityTimer();
+    updateInquiryScroll();
+};
+
+const scrollInquiryDown = () => {
+    const content = inquiryContent.value;
+    if (!content || !canScrollInquiryDown.value) return;
+    resetInactivityTimer();
+    content.scrollBy({
+        top: Math.max(1, content.clientHeight * 0.75),
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+    });
+    updateInquiryScroll();
 };
 
 const openInquiry = () => {
@@ -363,6 +398,7 @@ const stopVoiceRecognition = () => {
 };
 
 onMounted(() => {
+    window.addEventListener('resize', updateInquiryScroll);
     // تهيئة Speech Recognition
     const recognition = initSpeechRecognition();
     if (recognition) {
@@ -423,6 +459,8 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+    inquiryResizeObserver?.disconnect();
+    window.removeEventListener('resize', updateInquiryScroll);
     stopVoiceRecognition();
     if (speechRecognition.value) {
         speechRecognition.value.abort();
@@ -434,7 +472,20 @@ onUnmounted(() => {
 watch([inquiryStep, showInquiry], async () => {
     await nextTick();
     if (showInquiry.value && inquiryContent.value) inquiryContent.value.scrollTop = 0;
+    updateInquiryScroll();
 });
+
+watch([inquiryContent, inquiryBody], () => {
+    inquiryResizeObserver?.disconnect();
+    if (typeof ResizeObserver !== 'undefined') {
+        inquiryResizeObserver = new ResizeObserver(updateInquiryScroll);
+        if (inquiryContent.value) inquiryResizeObserver.observe(inquiryContent.value);
+        if (inquiryBody.value) inquiryResizeObserver.observe(inquiryBody.value);
+    }
+    updateInquiryScroll();
+}, { flush: 'post' });
+
+watch(() => props.departments, updateInquiryScroll, { flush: 'post' });
 </script>
 
 <template>
@@ -606,7 +657,8 @@ watch([inquiryStep, showInquiry], async () => {
                         </div>
 
                         <!-- Content Area - مع مسافات أمان من الأعلى والأسفل -->
-                        <div ref="inquiryContent" @scroll.passive="resetInactivityTimer" @pointerdown="resetInactivityTimer" class="flex-1 overflow-y-auto overscroll-contain bg-gradient-to-br from-white/50 via-blue-50/30 to-purple-50/20 backdrop-blur-sm min-h-0 custom-scrollbar">
+                        <div id="inquiry-scroll-content" ref="inquiryContent" @scroll.passive="handleInquiryScroll" @pointerdown="resetInactivityTimer" class="flex-1 overflow-y-auto overscroll-contain bg-gradient-to-br from-white/50 via-blue-50/30 to-purple-50/20 backdrop-blur-sm min-h-0 custom-scrollbar">
+                            <div ref="inquiryBody">
                             <!-- Departments View - تصميم حديث يشبه الهاتف -->
                             <div v-if="inquiryStep === 'departments'" class="max-w-4xl mx-auto px-6 py-8">
                                 <div v-if="!departments" class="py-8 text-center text-xl text-gray-700" role="status">
@@ -884,6 +936,27 @@ watch([inquiryStep, showInquiry], async () => {
                                 </div>
                             </div>
                         </div>
+                        </div>
+
+                        <!-- مساحة ثابتة للسهم حتى لا يغطي البيانات أو يغيّر موضعها عند النهاية -->
+                        <div v-if="inquiryOverflows" ref="inquiryScrollFooter" class="inquiry-scroll-footer">
+                            <div class="inquiry-scroll-controls">
+                                <button
+                                    v-show="canScrollInquiryDown"
+                                    type="button"
+                                    class="inquiry-scroll-down"
+                                    aria-label="عرض المزيد من البيانات بالأسفل"
+                                    aria-controls="inquiry-scroll-content"
+                                    @click="scrollInquiryDown"
+                                >
+                                    <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m-7-7 7 7 7-7" />
+                                    </svg>
+                                    <span>المزيد بالأسفل</span>
+                                </button>
+                                <p v-if="!canScrollInquiryDown" class="inquiry-scroll-end" role="status">وصلت إلى نهاية القائمة</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </transition>
@@ -989,8 +1062,62 @@ watch([inquiryStep, showInquiry], async () => {
 }
 
 .display-inquiry-panel {
+    --scroll-button-height: clamp(76px, calc(var(--display-unit) * 8), 160px);
     max-height: calc(var(--display-height) * 0.84);
     contain: layout paint;
+}
+
+.inquiry-scroll-footer {
+    flex-shrink: 0;
+    padding: 12px clamp(16px, calc(var(--display-unit) * 2), 44px) clamp(24px, calc(var(--display-unit) * 3), 64px);
+    border-top: 2px solid #c7d2fe;
+    background: #eef2ff;
+}
+
+.inquiry-scroll-controls {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    direction: rtl;
+    height: var(--scroll-button-height);
+}
+
+.inquiry-scroll-down {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(12px, calc(var(--display-unit) * 1.2), 28px);
+    min-height: var(--scroll-button-height);
+    padding: 12px clamp(18px, calc(var(--display-unit) * 2), 44px);
+    border: 2px solid #312e81;
+    border-radius: clamp(18px, calc(var(--display-unit) * 2), 40px);
+    background: #4338ca;
+    color: white;
+    font-size: clamp(20px, calc(var(--display-unit) * 2.4), 48px);
+    font-weight: 800;
+    line-height: 1.3;
+    touch-action: manipulation;
+}
+
+.inquiry-scroll-down svg {
+    flex-shrink: 0;
+    width: clamp(36px, calc(var(--display-unit) * 4), 80px);
+    height: clamp(36px, calc(var(--display-unit) * 4), 80px);
+}
+
+.inquiry-scroll-down:active {
+    background: #312e81;
+}
+
+.inquiry-scroll-down:focus-visible {
+    outline: 3px solid #1e1b4b;
+    outline-offset: 3px;
+}
+
+.inquiry-scroll-end {
+    color: #3730a3;
+    font-size: clamp(18px, calc(var(--display-unit) * 2), 40px);
+    font-weight: 700;
 }
 
 /* Keep portrait kiosk interactions around the upper middle, even with long lists. */

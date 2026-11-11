@@ -54,9 +54,14 @@ const showInquiry = ref(false);
 const inquiryReady = ref(false);
 const inquiryContent = ref(null);
 const inquiryBody = ref(null);
+const inquiryScrollHeader = ref(null);
 const inquiryScrollFooter = ref(null);
 const inquiryOverflows = ref(false);
+const canScrollInquiryUp = ref(false);
 const canScrollInquiryDown = ref(false);
+const failedDoctorPhotos = ref(new Set());
+const hasDoctorPhoto = (doctor) => doctor?.photo_url && !failedDoctorPhotos.value.has(doctor.photo_url);
+const handleDoctorPhotoError = (doctor) => failedDoctorPhotos.value.add(doctor.photo_url);
 let inquiryResizeObserver;
 const showMap = ref(false);
 const showMapDialog = ref(false);
@@ -141,13 +146,17 @@ const updateInquiryScroll = () => {
     const content = inquiryContent.value;
     if (!showInquiry.value || !content?.clientHeight || broadcastItem.value) {
         inquiryOverflows.value = false;
+        canScrollInquiryUp.value = false;
         canScrollInquiryDown.value = false;
         return;
     }
 
-    // Include the footer's height so showing the controls cannot create its own overflow.
-    const availableHeight = content.clientHeight + (inquiryScrollFooter.value?.offsetHeight || 0);
+    // Exclude the controls when checking whether the data itself needs scrolling.
+    const availableHeight = content.clientHeight
+        + (inquiryScrollHeader.value?.offsetHeight || 0)
+        + (inquiryScrollFooter.value?.offsetHeight || 0);
     inquiryOverflows.value = content.scrollHeight > availableHeight + 2;
+    canScrollInquiryUp.value = content.scrollTop > 2;
     canScrollInquiryDown.value = content.scrollHeight - content.clientHeight - content.scrollTop > 2;
 };
 
@@ -156,12 +165,13 @@ const handleInquiryScroll = () => {
     updateInquiryScroll();
 };
 
-const scrollInquiryDown = () => {
+const scrollInquiry = (direction) => {
     const content = inquiryContent.value;
-    if (!content || !canScrollInquiryDown.value) return;
+    const canScroll = direction < 0 ? canScrollInquiryUp.value : canScrollInquiryDown.value;
+    if (!content || !canScroll) return;
     resetInactivityTimer();
     content.scrollBy({
-        top: Math.max(1, content.clientHeight * 0.75),
+        top: direction * Math.max(1, content.clientHeight * 0.75),
         behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
     });
     updateInquiryScroll();
@@ -656,6 +666,27 @@ watch(() => props.departments, updateInquiryScroll, { flush: 'post' });
                             </button>
                         </div>
 
+                        <div v-if="inquiryOverflows" ref="inquiryScrollHeader" class="inquiry-scroll-toolbar inquiry-scroll-header">
+                            <div class="inquiry-scroll-controls">
+                                <button
+                                    v-show="canScrollInquiryUp"
+                                    type="button"
+                                    class="inquiry-scroll-button inquiry-scroll-up"
+                                    aria-label="عرض البيانات السابقة بالأعلى"
+                                    aria-controls="inquiry-scroll-content"
+                                    @click="scrollInquiry(-1)"
+                                >
+                                    <span class="inquiry-scroll-icon">
+                                        <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m6 14 6-6 6 6" />
+                                        </svg>
+                                    </span>
+                                    <span>السابق بالأعلى</span>
+                                </button>
+                                <p v-if="!canScrollInquiryUp" class="inquiry-scroll-status">بداية القائمة</p>
+                            </div>
+                        </div>
+
                         <!-- Content Area - مع مسافات أمان من الأعلى والأسفل -->
                         <div id="inquiry-scroll-content" ref="inquiryContent" @scroll.passive="handleInquiryScroll" @pointerdown="resetInactivityTimer" class="flex-1 overflow-y-auto overscroll-contain bg-gradient-to-br from-white/50 via-blue-50/30 to-purple-50/20 backdrop-blur-sm min-h-0 custom-scrollbar">
                             <div ref="inquiryBody">
@@ -756,18 +787,20 @@ watch(() => props.departments, updateInquiryScroll, { flush: 'post' });
                                             <div class="absolute inset-0 bg-gradient-to-r from-indigo-500/0 via-purple-500/0 to-pink-500/0 group-hover:from-indigo-500/10 group-hover:via-purple-500/10 group-hover:to-pink-500/10 transition-all duration-500"></div>
 
                                             <!-- Content Container -->
-                                            <div class="relative flex items-center gap-6">
+                                            <div class="relative flex items-center gap-6 inquiry-doctor-row">
                                                 <!-- Doctor Avatar Container -->
                                                 <div class="flex-shrink-0 relative">
-                                                    <div class="h-24 w-24 rounded-3xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 relative overflow-hidden">
+                                                    <div class="inquiry-doctor-portrait">
                                                         <!-- Doctor Photo or Icon -->
                                                         <img
-                                                            v-if="doctor.photo_url"
+                                                            v-if="hasDoctorPhoto(doctor)"
                                                             :src="doctor.photo_url"
                                                             :alt="doctor.name"
-                                                            class="h-full w-full object-cover rounded-3xl"
+                                                            loading="lazy"
+                                                            decoding="async"
+                                                            @error="handleDoctorPhotoError(doctor)"
                                                         />
-                                                        <svg v-else class="h-12 w-12 text-white relative z-10 drop-shadow-lg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                                        <svg v-else class="inquiry-doctor-placeholder" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                                             <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                                         </svg>
                                                         <!-- Animated Background -->
@@ -784,7 +817,7 @@ watch(() => props.departments, updateInquiryScroll, { flush: 'post' });
                                                 </div>
 
                                                 <!-- Text Content -->
-                                                <div class="flex-1 min-w-0">
+                                                <div class="flex-1 min-w-0 inquiry-doctor-info">
                                                     <h3 class="text-2xl md:text-3xl font-bold bg-gradient-to-r from-gray-800 via-indigo-600 to-purple-600 bg-clip-text text-transparent group-hover:from-indigo-600 group-hover:via-purple-600 group-hover:to-pink-600 transition-all duration-500 mb-3">
                                                         {{ doctor.name }}
                                                     </h3>
@@ -805,14 +838,6 @@ watch(() => props.departments, updateInquiryScroll, { flush: 'post' });
                                                     </div>
                                                 </div>
 
-                                                <!-- Arrow Icon -->
-                                                <div class="flex-shrink-0 opacity-0 group-hover:opacity-100 transform translate-x-4 group-hover:translate-x-0 transition-all duration-500">
-                                                    <div class="h-12 w-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg">
-                                                        <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-                                                        </svg>
-                                                    </div>
-                                                </div>
                                             </div>
 
                                             <!-- Bottom Accent Line -->
@@ -843,20 +868,27 @@ watch(() => props.departments, updateInquiryScroll, { flush: 'post' });
                                 <!-- تمرير التفاصيل من خلال حاوية المحتوى المشتركة -->
                                 <div class="pr-2 pb-4">
                                     <div class="bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 rounded-2xl p-4 shadow-xl border border-purple-100">
-                                        <!-- Doctor Header - Compact -->
-                                        <div class="flex items-center gap-3 mb-4 pb-3 border-b border-purple-200">
-                                            <!-- Doctor Icon - Smaller -->
+                                        <!-- صورة الطبيب ومعلوماته داخل شاشة المواعيد -->
+                                        <div class="flex items-center gap-6 mb-6 pb-6 border-b border-purple-200 inquiry-doctor-row">
+                                            <!-- صورة أكبر مع بديل عند عدم توفرها -->
                                             <div class="flex-shrink-0">
-                                                <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-md">
-                                                    <svg class="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                                <div class="inquiry-doctor-portrait inquiry-doctor-portrait-detail">
+                                                    <img
+                                                        v-if="hasDoctorPhoto(selectedDoctor)"
+                                                        :src="selectedDoctor.photo_url"
+                                                        :alt="selectedDoctor.name"
+                                                        decoding="async"
+                                                        @error="handleDoctorPhotoError(selectedDoctor)"
+                                                    />
+                                                    <svg v-else class="inquiry-doctor-placeholder" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                                     </svg>
                                                 </div>
                                             </div>
 
                                             <!-- Doctor Info - Compact -->
-                                            <div class="flex-1 min-w-0">
-                                                <h2 class="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-1 truncate">
+                                            <div class="flex-1 min-w-0 inquiry-doctor-info">
+                                                <h2 class="text-2xl md:text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-3 break-words">
                                                     {{ selectedDoctor.name }}
                                                 </h2>
                                                 <div class="inline-flex items-center gap-1.5 px-2 py-1 bg-indigo-100 rounded-lg">
@@ -939,22 +971,24 @@ watch(() => props.departments, updateInquiryScroll, { flush: 'post' });
                         </div>
 
                         <!-- مساحة ثابتة للسهم حتى لا يغطي البيانات أو يغيّر موضعها عند النهاية -->
-                        <div v-if="inquiryOverflows" ref="inquiryScrollFooter" class="inquiry-scroll-footer">
+                        <div v-if="inquiryOverflows" ref="inquiryScrollFooter" class="inquiry-scroll-toolbar inquiry-scroll-footer">
                             <div class="inquiry-scroll-controls">
                                 <button
                                     v-show="canScrollInquiryDown"
                                     type="button"
-                                    class="inquiry-scroll-down"
+                                    class="inquiry-scroll-button inquiry-scroll-down"
                                     aria-label="عرض المزيد من البيانات بالأسفل"
                                     aria-controls="inquiry-scroll-content"
-                                    @click="scrollInquiryDown"
+                                    @click="scrollInquiry(1)"
                                 >
-                                    <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m-7-7 7 7 7-7" />
-                                    </svg>
+                                    <span class="inquiry-scroll-icon">
+                                        <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m6 10 6 6 6-6" />
+                                        </svg>
+                                    </span>
                                     <span>المزيد بالأسفل</span>
                                 </button>
-                                <p v-if="!canScrollInquiryDown" class="inquiry-scroll-end" role="status">وصلت إلى نهاية القائمة</p>
+                                <p v-if="!canScrollInquiryDown" class="inquiry-scroll-status" role="status">وصلت إلى نهاية القائمة</p>
                             </div>
                         </div>
                     </div>
@@ -1067,11 +1101,19 @@ watch(() => props.departments, updateInquiryScroll, { flush: 'post' });
     contain: layout paint;
 }
 
-.inquiry-scroll-footer {
+.inquiry-scroll-toolbar {
     flex-shrink: 0;
-    padding: 12px clamp(16px, calc(var(--display-unit) * 2), 44px) clamp(24px, calc(var(--display-unit) * 3), 64px);
-    border-top: 2px solid #c7d2fe;
-    background: #eef2ff;
+    padding: 12px clamp(16px, calc(var(--display-unit) * 2), 44px);
+    background: #f8fafc;
+}
+
+.inquiry-scroll-header {
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.inquiry-scroll-footer {
+    padding-bottom: clamp(24px, calc(var(--display-unit) * 3), 64px);
+    border-top: 1px solid #e2e8f0;
 }
 
 .inquiry-scroll-controls {
@@ -1082,42 +1124,106 @@ watch(() => props.departments, updateInquiryScroll, { flush: 'post' });
     height: var(--scroll-button-height);
 }
 
-.inquiry-scroll-down {
-    display: flex;
+.inquiry-scroll-button {
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
     gap: clamp(12px, calc(var(--display-unit) * 1.2), 28px);
-    min-height: var(--scroll-button-height);
-    padding: 12px clamp(18px, calc(var(--display-unit) * 2), 44px);
-    border: 2px solid #312e81;
-    border-radius: clamp(18px, calc(var(--display-unit) * 2), 40px);
-    background: #4338ca;
-    color: white;
-    font-size: clamp(20px, calc(var(--display-unit) * 2.4), 48px);
+    height: var(--scroll-button-height);
+    padding: 8px clamp(18px, calc(var(--display-unit) * 2), 44px) 8px 10px;
+    border: 2px solid #c7d2fe;
+    border-radius: 999px;
+    background: white;
+    color: #3730a3;
+    font-size: clamp(20px, calc(var(--display-unit) * 2.2), 44px);
     font-weight: 800;
     line-height: 1.3;
     touch-action: manipulation;
 }
 
-.inquiry-scroll-down svg {
+.inquiry-scroll-down {
+    border-color: #4f46e5;
+    background: linear-gradient(110deg, #4338ca, #6366f1);
+    color: white;
+}
+
+.inquiry-scroll-icon {
+    display: grid;
+    place-items: center;
     flex-shrink: 0;
-    width: clamp(36px, calc(var(--display-unit) * 4), 80px);
-    height: clamp(36px, calc(var(--display-unit) * 4), 80px);
+    width: calc(var(--scroll-button-height) * 0.7);
+    height: calc(var(--scroll-button-height) * 0.7);
+    border-radius: 50%;
+    background: #eef2ff;
 }
 
-.inquiry-scroll-down:active {
+.inquiry-scroll-down .inquiry-scroll-icon {
+    background: rgba(255, 255, 255, 0.18);
+}
+
+.inquiry-scroll-icon svg {
+    width: 65%;
+    height: 65%;
+}
+
+.inquiry-scroll-button:active {
+    border-color: #312e81;
     background: #312e81;
+    color: white;
 }
 
-.inquiry-scroll-down:focus-visible {
-    outline: 3px solid #1e1b4b;
+.inquiry-scroll-button:active .inquiry-scroll-icon {
+    background: rgba(255, 255, 255, 0.18);
+}
+
+.inquiry-scroll-button:focus-visible {
+    outline: 3px solid #818cf8;
     outline-offset: 3px;
 }
 
-.inquiry-scroll-end {
-    color: #3730a3;
+.inquiry-scroll-status {
+    color: #64748b;
     font-size: clamp(18px, calc(var(--display-unit) * 2), 40px);
     font-weight: 700;
+}
+
+.inquiry-doctor-row {
+    flex-wrap: wrap;
+}
+
+.inquiry-doctor-info {
+    flex-basis: 12rem;
+}
+
+.inquiry-doctor-portrait {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    width: clamp(144px, calc(var(--display-unit) * 12), 260px);
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    border: 4px solid white;
+    border-radius: clamp(20px, calc(var(--display-unit) * 2), 36px);
+    outline: 1px solid #c7d2fe;
+    background: linear-gradient(145deg, #eef2ff, #e0e7ff);
+}
+
+.inquiry-doctor-portrait-detail {
+    width: clamp(176px, calc(var(--display-unit) * 14), 300px);
+}
+
+.inquiry-doctor-portrait img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+}
+
+.inquiry-doctor-placeholder {
+    width: 50%;
+    height: 50%;
+    color: #818cf8;
 }
 
 /* Keep portrait kiosk interactions around the upper middle, even with long lists. */

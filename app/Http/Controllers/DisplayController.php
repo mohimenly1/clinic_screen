@@ -34,7 +34,7 @@ class DisplayController extends Controller
             'type' => $item->file_type,
             'duration' => $item->duration,
         ]);
-        $departments = Department::query()
+        $departments = Inertia::defer(fn () => Department::query()
             ->select('id', 'name')
             ->with(['doctors' => function ($query) {
                 $query->select('id', 'department_id', 'name', 'photo_path')
@@ -61,7 +61,7 @@ class DisplayController extends Controller
                 'photo_url' => $doctor->photo_path ? Storage::url($doctor->photo_path) : null,
                 'schedules' => $doctor->schedules,
             ]),
-        ]);
+        ]), 'inquiry');
         $backgroundAudioUrl = $screen->backgroundAudio ? Storage::url($screen->backgroundAudio->file_path) : null;
         $initialBroadcastItem = null;
         $activeBroadcastId = Cache::get('active_broadcast_media_id');

@@ -2,6 +2,8 @@
 import { ref, computed, nextTick, onMounted, watch, onUnmounted } from 'vue';
 import { initSpeechRecognition, processVoiceCommand } from '@/utils/voiceCommands';
 import RoomListView from '@/Components/RoomListView.vue';
+import DisplayMediaPlayer from '@/Components/DisplayMediaPlayer.vue';
+import { router } from '@inertiajs/vue3';
 
 const props = defineProps({
     screen: Object,
@@ -14,16 +16,18 @@ const props = defineProps({
 
 const broadcastItem = ref(props.initialBroadcastItem);
 const audioPlayer = ref(null);
-const currentVideoPlayer = ref(null);
-const broadcastVideoPlayer = ref(null);
 const isMuted = ref(true);
-const currentIndex = ref(0);
-const isVisible = ref(false);
 
 // **جديد**: استخدام متغير محلي للوسائط لتمكين التحديث الفوري
 const localMediaItems = ref(props.mediaItems);
 
-const currentItem = computed(() => localMediaItems.value?.[currentIndex.value] || null);
+const playbackItems = computed(() => broadcastItem.value ? [broadcastItem.value] : (localMediaItems.value || []));
+const inquiryLoading = ref(false);
+const retryInquiry = () => {
+    if (inquiryLoading.value) return;
+    inquiryLoading.value = true;
+    router.reload({ only: ['departments'], onFinish: () => inquiryLoading.value = false });
+};
 const displayAspectRatio = computed(() => {
     if (props.screen.resolution) {
         const [width, height] = props.screen.resolution.split('x').map(Number);
@@ -45,34 +49,6 @@ const containerStyle = computed(() => {
     };
 });
 
-const nextItem = () => {
-    isVisible.value = false;
-    setTimeout(() => {
-        currentIndex.value = (currentIndex.value + 1) % (localMediaItems.value.length || 1);
-        isVisible.value = true;
-    }, 120);
-};
-
-// **جديد**: دالة لبدء أو إعادة تشغيل المشغل
-const startPlayer = () => {
-    if (localMediaItems.value.length > 0 && !broadcastItem.value) {
-        currentIndex.value = 0; // ابدأ دائمًا من العنصر الأول عند التحديث
-        isVisible.value = true;
-        scheduleNext();
-    } else {
-        isVisible.value = false; // إخفاء المشغل إذا كانت القائمة الجديدة فارغة
-    }
-};
-
-
-const scheduleNext = () => {
-    // إيقاف أي مؤقتات سابقة لضمان عدم التداخل
-    clearTimeout(window.playerTimeout);
-    if (currentItem.value?.type === 'image') {
-        window.playerTimeout = setTimeout(nextItem, currentItem.value.duration * 1000);
-    }
-};
-
 const notification = ref(null);
 const showInquiry = ref(false);
 const inquiryReady = ref(false);
@@ -83,132 +59,6 @@ const inquiryStep = ref('departments');
 const selectedDepartment = ref(null);
 const selectedDoctor = ref(null);
 let inactivityTimer = null;
-
-// **جديد**: تتبع حالة إعادة التحميل لمنع الطلبات المتكررة
-const videoReloadState = ref({
-    isReloading: false,
-    lastReloadTime: 0,
-    reloadCount: 0,
-    stalledTimeout: null,
-    waitingTimeout: null,
-    currentVideoSrc: null, // تتبع الفيديو الحالي
-    reloadAttemptsPerVideo: new Map(), // تتبع عدد محاولات إعادة التحميل لكل فيديو
-    maxReloadAttempts: 2 // حد أقصى 2 محاولة إعادة تحميل لكل فيديو
-});
-const VIDEO_STALL_SKIP_DELAY = 45000;
-
-// **جديد**: دالة لتنظيف حالة إعادة التحميل عند تغيير الفيديو
-const resetVideoReloadState = (newVideoSrc) => {
-    // إذا تغير الفيديو، قم بإعادة تعيين الحالة
-    if (videoReloadState.value.currentVideoSrc !== newVideoSrc) {
-        // إلغاء أي timeouts نشطة
-        if (videoReloadState.value.stalledTimeout) {
-            clearTimeout(videoReloadState.value.stalledTimeout);
-            videoReloadState.value.stalledTimeout = null;
-        }
-        if (videoReloadState.value.waitingTimeout) {
-            clearTimeout(videoReloadState.value.waitingTimeout);
-            videoReloadState.value.waitingTimeout = null;
-        }
-
-        // إعادة تعيين الحالة
-        videoReloadState.value.isReloading = false;
-        videoReloadState.value.currentVideoSrc = newVideoSrc;
-        videoReloadState.value.lastReloadTime = 0;
-    }
-};
-
-// **جديد**: دالة آمنة لإعادة تحميل الفيديو مع throttling
-const safeVideoReload = (video, reason = 'unknown') => {
-    const now = Date.now();
-    const MIN_RELOAD_INTERVAL = 15000; // 15 ثانية كحد أدنى بين إعادة التحميل
-    const MAX_RELOADS_PER_MINUTE = 2; // حد أقصى 2 إعادة تحميل في الدقيقة
-
-    // التحقق من أن الفيديو موجود وله src
-    if (!video || !video.src) {
-        console.warn(`Video reload skipped: no video or src (${reason})`);
-        return false;
-    }
-
-    const currentSrc = video.src;
-
-    // التحقق من أن الفيديو لا يزال هو نفسه
-    if (videoReloadState.value.currentVideoSrc && videoReloadState.value.currentVideoSrc !== currentSrc) {
-        console.warn(`Video reload skipped: video changed (${reason})`);
-        return false;
-    }
-
-    // الحصول على عدد محاولات إعادة التحميل لهذا الفيديو
-    const reloadAttempts = videoReloadState.value.reloadAttemptsPerVideo.get(currentSrc) || 0;
-
-    // إذا تجاوزنا الحد الأقصى للمحاولات، انتقل للعنصر التالي
-    if (reloadAttempts >= videoReloadState.value.maxReloadAttempts) {
-        console.warn(`Video reload skipped: max attempts reached (${reloadAttempts}/${videoReloadState.value.maxReloadAttempts}). Moving to next item.`);
-        // الانتقال للعنصر التالي
-        if (currentItem.value?.type === 'video') {
-            setTimeout(() => {
-                nextItem();
-            }, 1000);
-        }
-        return false;
-    }
-
-    // التحقق من الوقت المنقضي منذ آخر إعادة تحميل
-    if (now - videoReloadState.value.lastReloadTime < MIN_RELOAD_INTERVAL) {
-        console.warn(`Video reload skipped: too soon (${reason})`);
-        return false;
-    }
-
-    // التحقق من عدد إعادة التحميل في الدقيقة الأخيرة
-    if (videoReloadState.value.reloadCount >= MAX_RELOADS_PER_MINUTE) {
-        console.warn(`Video reload skipped: too many reloads (${reason})`);
-        return false;
-    }
-
-    // التحقق من أن الفيديو لا يتم إعادة تحميله بالفعل
-    if (videoReloadState.value.isReloading) {
-        console.warn(`Video reload skipped: already reloading (${reason})`);
-        return false;
-    }
-
-    // بدء عملية إعادة التحميل
-    videoReloadState.value.isReloading = true;
-    videoReloadState.value.lastReloadTime = now;
-    videoReloadState.value.reloadCount++;
-    videoReloadState.value.currentVideoSrc = currentSrc;
-
-    // زيادة عدد المحاولات لهذا الفيديو
-    videoReloadState.value.reloadAttemptsPerVideo.set(currentSrc, reloadAttempts + 1);
-
-    console.log(`Video reload initiated: ${reason} (attempt ${reloadAttempts + 1}/${videoReloadState.value.maxReloadAttempts})`);
-
-    // إعادة تعيين العداد بعد دقيقة
-    setTimeout(() => {
-        videoReloadState.value.reloadCount = Math.max(0, videoReloadState.value.reloadCount - 1);
-    }, 60000);
-
-    // يستخدم فقط عند وجود خطأ حقيقي في الملف. لا نستدعيه مع waiting/stalled حتى لا نقطع buffering.
-    try {
-        video.load();
-
-        // إعادة تعيين حالة الإعادة بعد 5 ثواني (أطول من قبل)
-        setTimeout(() => {
-            videoReloadState.value.isReloading = false;
-        }, 5000);
-    } catch (error) {
-        console.error('Error reloading video:', error);
-        videoReloadState.value.isReloading = false;
-        // في حالة الخطأ، انتقل للعنصر التالي
-        if (currentItem.value?.type === 'video') {
-            setTimeout(() => {
-                nextItem();
-            }, 1000);
-        }
-        return false;
-    }
-
-    return true;
-};
 
 // تم إزالة فقاعة الاستعلامات - الزر الآن دائماً واضح
 
@@ -222,20 +72,6 @@ const closeMap = () => {
 
 const closeMapDialog = () => {
     showMapDialog.value = false;
-};
-
-const pauseDisplayVideo = () => {
-    const video = currentVideoPlayer.value;
-    if (video && !video.paused) {
-        video.pause();
-    }
-};
-
-const resumeDisplayVideo = () => {
-    const video = currentVideoPlayer.value;
-    if (video && currentItem.value?.type === 'video' && !broadcastItem.value) {
-        video.play().catch(e => console.error('Failed to resume display video:', e));
-    }
 };
 
 // Voice Recognition
@@ -330,6 +166,10 @@ const goBack = () => {
 
 // Voice Recognition Functions
 const startVoiceRecognition = async () => {
+    if (!props.departments) {
+        openInquiry();
+        return;
+    }
     if (!speechRecognition.value) {
         voiceCommandFeedback.value = { type: 'error', message: 'المتصفح لا يدعم التعرف الصوتي' };
         setTimeout(() => voiceCommandFeedback.value = null, 4000);
@@ -419,7 +259,7 @@ const startVoiceRecognition = async () => {
                 // فتح الطبيب مباشرة
                 // أولاً نفتح واجهة الاستعلامات إذا لم تكن مفتوحة
                 if (!showInquiry.value) {
-                    showInquiry.value = true;
+                    openInquiry();
                 }
                 // ثم نختار القسم أولاً ثم الطبيب
                 setTimeout(() => {
@@ -434,7 +274,7 @@ const startVoiceRecognition = async () => {
                 // فتح القسم تلقائياً
                 // أولاً نفتح واجهة الاستعلامات إذا لم تكن مفتوحة
                 if (!showInquiry.value) {
-                    showInquiry.value = true;
+                    openInquiry();
                 }
                 // ثم نختار القسم
                 setTimeout(() => {
@@ -523,19 +363,6 @@ const stopVoiceRecognition = () => {
 };
 
 onMounted(() => {
-    startPlayer(); // بدء المشغل عند تحميل الصفحة
-
-    // تجهيز واجهة الاستعلام بعد أن يبدأ العرض، حتى لا يحصل تقطيع عند أول نقرة.
-    const prepareInquiry = () => {
-        inquiryReady.value = true;
-    };
-
-    if ('requestIdleCallback' in window) {
-        window.requestIdleCallback(prepareInquiry, { timeout: 2500 });
-    } else {
-        setTimeout(prepareInquiry, 1200);
-    }
-
     // تهيئة Speech Recognition
     const recognition = initSpeechRecognition();
     if (recognition) {
@@ -584,7 +411,6 @@ onMounted(() => {
                 .listen('.ScreenContentUpdated', (event) => {
                     console.log('Real-time event received: ScreenContentUpdated', event);
                     localMediaItems.value = event.mediaItems;
-                    startPlayer(); // إعادة تشغيل المشغل بالمحتوى الجديد
                 });
         }
 
@@ -602,209 +428,7 @@ onUnmounted(() => {
         speechRecognition.value.abort();
     }
 
-    // **جديد**: تنظيف timeouts عند إلغاء التثبيت
-    if (videoReloadState.value.stalledTimeout) {
-        clearTimeout(videoReloadState.value.stalledTimeout);
-        videoReloadState.value.stalledTimeout = null;
-    }
-    if (videoReloadState.value.waitingTimeout) {
-        clearTimeout(videoReloadState.value.waitingTimeout);
-        videoReloadState.value.waitingTimeout = null;
-    }
-
-    // تنظيف حالة إعادة التحميل
-    videoReloadState.value.isReloading = false;
-    videoReloadState.value.currentVideoSrc = null;
-    videoReloadState.value.reloadAttemptsPerVideo.clear();
-});
-
-// معالجة أخطاء الفيديو
-const handleVideoError = (event) => {
-    console.error('Video error:', event);
-    const video = event.target;
-    console.error('Video error details:', {
-        error: video.error,
-        code: video.error?.code,
-        message: video.error?.message,
-        src: video.src
-    });
-
-    // التحقق من أن الفيديو لا يزال هو نفسه
-    if (!video || !video.src || video.src !== videoReloadState.value.currentVideoSrc) {
-        return;
-    }
-
-    // إلغاء أي timeouts نشطة
-    if (videoReloadState.value.stalledTimeout) {
-        clearTimeout(videoReloadState.value.stalledTimeout);
-        videoReloadState.value.stalledTimeout = null;
-    }
-    if (videoReloadState.value.waitingTimeout) {
-        clearTimeout(videoReloadState.value.waitingTimeout);
-        videoReloadState.value.waitingTimeout = null;
-    }
-
-    // محاولة إعادة التحميل فقط للأخطاء القابلة للاسترداد ومرة واحدة فقط
-    if (video.error && video.error.code === 4) {
-        // MEDIA_ERR_SRC_NOT_SUPPORTED - محاولة إعادة تحميل آمنة
-        console.warn('Video format not supported, trying safe reload...');
-        if (safeVideoReload(video, 'format_not_supported')) {
-            video.play().catch(e => {
-                console.error('Failed to play after reload:', e);
-                // الانتقال للعنصر التالي في حالة الفشل
-                if (currentItem.value?.type === 'video') {
-                    setTimeout(() => nextItem(), 1000);
-                }
-            });
-        } else {
-            // إذا لم نتمكن من إعادة التحميل، انتقل للعنصر التالي
-            if (currentItem.value?.type === 'video') {
-                setTimeout(() => nextItem(), 1000);
-            }
-        }
-    } else {
-        // للأخطاء الأخرى، الانتقال للعنصر التالي مباشرة
-        if (currentItem.value?.type === 'video') {
-            setTimeout(() => nextItem(), 1000);
-        }
-    }
-};
-
-const handleVideoLoaded = (event) => {
-    const video = event.target;
-    console.log('Video metadata loaded:', {
-        duration: video.duration,
-        videoWidth: video.videoWidth,
-        videoHeight: video.videoHeight,
-        readyState: video.readyState
-    });
-
-    // تعيين الفيديو الحالي عند تحميل metadata بنجاح
-    if (video.src) {
-        resetVideoReloadState(video.src);
-    }
-
-    // التأكد من أن الفيديو جاهز للتشغيل
-    if (video.readyState >= 2) {
-        video.play().catch(e => {
-            console.error('Failed to play video:', e);
-        });
-    }
-};
-
-const handleVideoStalled = (event) => {
-    const video = event.target;
-
-    // التحقق من أن الفيديو لا يزال هو نفسه
-    if (!video || !video.src || video.src !== videoReloadState.value.currentVideoSrc) {
-        return; // تجاهل إذا كان الفيديو قد تغير
-    }
-
-    // إلغاء أي timeout سابق
-    if (videoReloadState.value.stalledTimeout) {
-        clearTimeout(videoReloadState.value.stalledTimeout);
-        videoReloadState.value.stalledTimeout = null;
-    }
-
-    // لا نعيد تحميل الفيديو عند stalled لأن ذلك يسبب تقطيعاً على الأجهزة الضعيفة.
-    // ننتظر مدة طويلة، وإذا ظل عالقاً ننتقل للعنصر التالي فقط.
-    videoReloadState.value.stalledTimeout = setTimeout(() => {
-        // التحقق مرة أخرى من حالة الفيديو وأنه لا يزال هو نفسه
-        if (!video || !video.src || video.src !== videoReloadState.value.currentVideoSrc) {
-            return;
-        }
-
-        if (video.readyState < 2 && currentItem.value?.type === 'video') {
-            console.warn('Video stalled too long. Moving to next item.');
-            nextItem();
-        }
-    }, VIDEO_STALL_SKIP_DELAY);
-};
-
-const handleVideoWaiting = (event) => {
-    const video = event.target;
-
-    // التحقق من أن الفيديو لا يزال هو نفسه
-    if (!video || !video.src || video.src !== videoReloadState.value.currentVideoSrc) {
-        return; // تجاهل إذا كان الفيديو قد تغير
-    }
-
-    // إلغاء أي timeout سابق
-    if (videoReloadState.value.waitingTimeout) {
-        clearTimeout(videoReloadState.value.waitingTimeout);
-        videoReloadState.value.waitingTimeout = null;
-    }
-
-    // waiting طبيعي مع الشبكات أو الأجهزة الضعيفة. إعادة load هنا تقطع الفيديو أكثر.
-    videoReloadState.value.waitingTimeout = setTimeout(() => {
-        // التحقق مرة أخرى من حالة الفيديو وأنه لا يزال هو نفسه
-        if (!video || !video.src || video.src !== videoReloadState.value.currentVideoSrc) {
-            return;
-        }
-
-        if (video.readyState < 2 && currentItem.value?.type === 'video') {
-            console.warn('Video waiting too long. Moving to next item.');
-            nextItem();
-        }
-    }, VIDEO_STALL_SKIP_DELAY);
-};
-
-// **جديد**: دالة لمعالجة حدث canplay لإلغاء timeouts عند نجاح التحميل
-const handleVideoCanPlay = (event) => {
-    const video = event.target;
-
-    // التحقق من أن الفيديو لا يزال هو نفسه
-    if (!video || !video.src || video.src !== videoReloadState.value.currentVideoSrc) {
-        return;
-    }
-
-    if (videoReloadState.value.stalledTimeout) {
-        clearTimeout(videoReloadState.value.stalledTimeout);
-        videoReloadState.value.stalledTimeout = null;
-    }
-    if (videoReloadState.value.waitingTimeout) {
-        clearTimeout(videoReloadState.value.waitingTimeout);
-        videoReloadState.value.waitingTimeout = null;
-    }
-    // إعادة تعيين حالة الإعادة عند نجاح التحميل
-    videoReloadState.value.isReloading = false;
-
-    // إعادة تعيين عدد المحاولات عند نجاح التحميل
-    if (video.src) {
-        videoReloadState.value.reloadAttemptsPerVideo.delete(video.src);
-    }
-};
-
-watch(currentItem, (newItem, oldItem) => {
-    // إعادة تعيين حالة إعادة التحميل عند تغيير العنصر
-    if (newItem?.url !== oldItem?.url) {
-        resetVideoReloadState(newItem?.url || null);
-    }
-
-    if (newItem?.type === 'image' && !broadcastItem.value) {
-        scheduleNext();
-    }
-});
-
-watch(broadcastItem, (newVal, oldVal) => {
-    // إعادة تعيين حالة إعادة التحميل عند تغيير البث
-    if (newVal?.url !== oldVal?.url) {
-        resetVideoReloadState(newVal?.url || null);
-    }
-
-    if (newVal === null && oldVal !== null) {
-        console.log("Broadcast ended. Restarting regular playlist...");
-        startPlayer();
-    }
-});
-
-watch(showInquiry, (isOpen) => {
-    if (isOpen) {
-        pauseDisplayVideo();
-        return;
-    }
-
-    resumeDisplayVideo();
+    clearTimeout(inactivityTimer);
 });
 
 watch([inquiryStep, showInquiry], async () => {
@@ -814,66 +438,16 @@ watch([inquiryStep, showInquiry], async () => {
 </script>
 
 <template>
-    <audio ref="audioPlayer" v-if="backgroundAudioUrl" :src="backgroundAudioUrl" loop :muted="isMuted"></audio>
+    <audio ref="audioPlayer" v-if="backgroundAudioUrl" :src="backgroundAudioUrl" preload="none" loop :muted="isMuted"></audio>
     <div class="fixed inset-0 bg-black w-full h-full overflow-hidden flex items-center justify-center font-sans display-lite">
         <div :style="containerStyle" :class="{ 'display-stage-portrait': displayAspectRatio < 1 }" class="relative shrink-0">
-            <!-- مشغل الإعلانات - مع إزاحة عند فتح الاستعلامات -->
-            <transition name="fade">
-                <div
-                    v-if="currentItem && isVisible && !broadcastItem"
-                    :key="currentItem.id"
-                    class="absolute inset-0 display-player-layer"
-                >
-                    <img v-if="currentItem.type === 'image'" :src="currentItem.url" class="w-full h-full object-cover"/>
-                    <video
-                        v-else-if="currentItem.type === 'video'"
-                        ref="currentVideoPlayer"
-                        :src="currentItem.url"
-                        class="w-full h-full object-cover"
-                        autoplay
-                        muted
-                        playsinline
-                        preload="auto"
-                        webkit-playsinline
-                        @ended="nextItem"
-                        @error="handleVideoError"
-                        @loadedmetadata="handleVideoLoaded"
-                        @stalled="handleVideoStalled"
-                        @waiting="handleVideoWaiting"
-                        @canplay="handleVideoCanPlay"
-                        @playing="handleVideoCanPlay"
-                    ></video>
-                </div>
-            </transition>
+            <DisplayMediaPlayer :items="playbackItems" :paused="showInquiry && !broadcastItem" />
             <div
-                v-if="!currentItem && !showInquiry && !broadcastItem"
+                v-if="!playbackItems.length && !showInquiry"
                 class="w-full h-full flex items-center justify-center text-white text-2xl"
             >
                 لا يوجد محتوى لعرضه.
             </div>
-            <transition name="fade">
-                <div v-if="broadcastItem" class="absolute inset-0 z-40">
-                    <img v-if="broadcastItem.type === 'image'" :src="broadcastItem.url" class="w-full h-full object-cover"/>
-                    <video
-                        v-else-if="broadcastItem.type === 'video'"
-                        ref="broadcastVideoPlayer"
-                        :src="broadcastItem.url"
-                        class="w-full h-full object-cover"
-                        autoplay
-                        muted
-                        playsinline
-                        webkit-playsinline
-                        loop
-                        preload="auto"
-                        @error="handleVideoError"
-                        @loadedmetadata="handleVideoLoaded"
-                        @stalled="handleVideoStalled"
-                        @waiting="handleVideoWaiting"
-                        @canplay="handleVideoCanPlay"
-                        @playing="handleVideoCanPlay"
-                    ></video>
-                </div>
-            </transition>
 
             <!-- شريط الأدوات الجانبي - تصميم طولي بارز -->
             <div v-if="!broadcastItem" class="absolute left-0 top-1/2 -translate-y-1/2 z-30 flex flex-col sidebar-strip">
@@ -1035,7 +609,14 @@ watch([inquiryStep, showInquiry], async () => {
                         <div ref="inquiryContent" @scroll.passive="resetInactivityTimer" @pointerdown="resetInactivityTimer" class="flex-1 overflow-y-auto overscroll-contain bg-gradient-to-br from-white/50 via-blue-50/30 to-purple-50/20 backdrop-blur-sm min-h-0 custom-scrollbar">
                             <!-- Departments View - تصميم حديث يشبه الهاتف -->
                             <div v-if="inquiryStep === 'departments'" class="max-w-4xl mx-auto px-6 py-8">
-                                <div class="space-y-4">
+                                <div v-if="!departments" class="py-8 text-center text-xl text-gray-700" role="status">
+                                    <p>جارٍ تحميل الأقسام والمواعيد…</p>
+                                    <button @click="retryInquiry" :disabled="inquiryLoading" class="mt-4 rounded-xl bg-indigo-600 px-6 py-3 font-bold text-white disabled:opacity-50">
+                                        {{ inquiryLoading ? 'جارٍ التحميل…' : 'إعادة المحاولة' }}
+                                    </button>
+                                </div>
+                                <p v-else-if="departments.length === 0" class="py-8 text-center text-xl text-gray-700">لا توجد أقسام متاحة حالياً.</p>
+                                <div v-else class="space-y-4">
                                     <div
                                         v-for="(department, index) in departments"
                                         :key="department.id"
@@ -1391,10 +972,6 @@ watch([inquiryStep, showInquiry], async () => {
     background: rgba(0, 0, 0, 0.78) !important;
 }
 
-.display-lite .display-player-layer {
-    opacity: 1 !important;
-}
-
 .fade-enter-active, .fade-leave-active { transition: opacity 0.12s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
 .inquiry-fade-enter-active, .inquiry-fade-leave-active { transition: opacity 0.3s ease; }
@@ -1402,13 +979,6 @@ watch([inquiryStep, showInquiry], async () => {
 .slide-fade-enter-active { transition: opacity 0.4s ease-out, transform 0.4s ease-out; }
 .slide-fade-leave-active { transition: opacity 0.4s cubic-bezier(1, 0.5, 0.8, 1), transform 0.4s cubic-bezier(1, 0.5, 0.8, 1); }
 .slide-fade-enter-from, .slide-fade-leave-to { transform: translateY(20px); opacity: 0; }
-
-.display-player-layer {
-    backface-visibility: hidden;
-    contain: layout paint;
-    transform: translateZ(0);
-    will-change: opacity;
-}
 
 .display-inquiry-overlay {
     background: rgba(0, 0, 0, 0.72);

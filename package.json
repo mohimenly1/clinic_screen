@@ -4,6 +4,7 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
+        "test:display": "node scripts/test-display-player.mjs",
         "dev": "vite",
         "reverb": "php artisan reverb:start",
         "reverb:local": "php artisan reverb:start --host=127.0.0.1 --port=8080",

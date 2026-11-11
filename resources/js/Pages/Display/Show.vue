@@ -1228,7 +1228,7 @@ watch(() => props.departments, updateInquiryScroll, { flush: 'post' });
 
 /* Keep portrait kiosk interactions around the upper middle, even with long lists. */
 .display-stage-portrait .display-inquiry-layout {
-    padding-top: calc(var(--display-height) * 0.12);
+    padding-top: calc(var(--display-height) * 0.06);
 }
 
 .display-stage-portrait .display-inquiry-panel {
